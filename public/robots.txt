@@ -1,3 +1,8 @@
-# https://www.robotstxt.org/robotstxt.html
 User-agent: *
-Disallow:
+Allow: /
+
+# Sitemap
+Sitemap: https://realproperties.wealthassociate.in/sitemap.xml
+
+# Crawl delay for bots
+Crawl-delay: 5
