@@ -1,214 +1,222 @@
-import React, { useState, useEffect } from 'react';
-import { Menu, X, Building2, Home, Star, Map, Phone, Moon, Sun } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { Building2, LogOut, Menu, Moon, Plus, Sun, User, X } from 'lucide-react';
+import AuthModal from './AuthModal';
+
+const navLinks = [
+  { name: 'Home', id: 'home' },
+  { name: 'Why Us', id: 'features' },
+  { name: 'Listings', id: 'properties' },
+  { name: 'Contact', id: 'contact' }
+];
 
 const Navbar = ({ onExplore }) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
-  const [theme, setTheme] = useState('dark');
+  const [theme, setTheme] = useState('light');
+  const [user, setUser] = useState(null);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('app-theme') || 'dark';
+    const savedTheme = localStorage.getItem('app-theme') || 'light';
     setTheme(savedTheme);
     document.documentElement.setAttribute('data-theme', savedTheme);
-  }, []);
 
-  const toggleTheme = () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-    localStorage.setItem('app-theme', newTheme);
-    document.documentElement.setAttribute('data-theme', newTheme);
-  };
+    const storedUser = localStorage.getItem('realprop_user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+
+    const handleAuthChange = () => {
+      const nextUser = localStorage.getItem('realprop_user');
+      setUser(nextUser ? JSON.parse(nextUser) : null);
+    };
+
+    window.addEventListener('authChange', handleAuthChange);
+    return () => window.removeEventListener('authChange', handleAuthChange);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-      
-      const sections = ['home', 'features', 'properties', 'contact'];
-      for (const section of sections.slice().reverse()) {
-         const el = document.getElementById(section);
-         if (el && window.scrollY >= (el.offsetTop - 250)) {
-            setActiveTab(section);
-            break;
-         }
+      setScrolled(window.scrollY > 18);
+      const sections = ['contact', 'properties', 'features', 'home'];
+      const current = sections.find((id) => {
+        const element = document.getElementById(id);
+        return element && window.scrollY >= element.offsetTop - 180;
+      });
+      if (current) {
+        setActiveTab(current);
       }
     };
-    
+
     handleScroll();
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const navLinks = [
-    { name: 'Home', id: 'home', icon: <Home size={18} /> },
-    { name: 'Features', id: 'features', icon: <Star size={18} /> },
-    { name: 'Properties', id: 'properties', icon: <Map size={18} /> },
-    { name: 'Contact', id: 'contact', icon: <Phone size={18} /> },
-  ];
+  const toggleTheme = () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
+    localStorage.setItem('app-theme', nextTheme);
+    document.documentElement.setAttribute('data-theme', nextTheme);
+  };
 
   const handleNavClick = (id) => {
-    document.getElementById(id)?.scrollIntoView({behavior: 'smooth'});
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
     setMobileMenuOpen(false);
+    if (id === 'properties' && onExplore) {
+      onExplore();
+    }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('realprop_user');
+    setUser(null);
+    setMobileMenuOpen(false);
+    window.dispatchEvent(new CustomEvent('authChange'));
+    window.dispatchEvent(new CustomEvent('switchView', { detail: 'home' }));
+  };
+
+  const closeAndOpenPost = () => {
+    setMobileMenuOpen(false);
+    window.dispatchEvent(new CustomEvent('openPostProperty'));
   };
 
   return (
     <>
-      <style>{`
-        .nav-link.active {
-          color: var(--primary) !important;
-          font-weight: 700;
-        }
-        .nav-link-indicator {
-          position: absolute;
-          bottom: -4px;
-          left: 0;
-          right: 0;
-          height: 2px;
-          background: var(--primary);
-          border-radius: 2px;
-          box-shadow: 0 0 8px rgba(99, 102, 241, 0.8);
-        }
-        .navbar-scrolled {
-          background: var(--navbar-bg-scrolled) !important;
-          backdrop-filter: blur(16px) !important;
-          border-bottom: 1px solid var(--border-color) !important;
-          box-shadow: 0 4px 30px rgba(0, 0, 0, 0.2);
-        }
-        .logo-text {
-          background: linear-gradient(135deg, var(--text-main) 0%, var(--primary) 100%);
-          -webkit-background-clip: text;
-          background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-      `}</style>
-      <motion.nav 
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className={`navbar ${scrolled ? 'navbar-scrolled' : ''}`}
+      <motion.nav
+        initial={{ y: -24, x: '-50%', opacity: 0 }}
+        animate={{ y: 0, x: '-50%', opacity: 1 }}
+        transition={{ duration: 0.45, ease: 'easeOut' }}
+        className={`navbar ${scrolled ? 'scrolled' : ''}`}
       >
-        <div className="navbar-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', maxWidth: '1400px', margin: '0 auto' }}>
-          <motion.div 
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="navbar-logo" 
-            onClick={() => handleNavClick('home')}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer' }}
-          >
-             <div style={{ background: 'linear-gradient(135deg, var(--primary) 0%, #4f46e5 100%)', padding: '8px', borderRadius: '12px', color: 'white' }}>
-               <Building2 size={24} className="logo-icon" />
-             </div>
-             <span className="logo-text" style={{ fontSize: '1.5rem', fontWeight: 800 }}>Real Properties</span>
-          </motion.div>
+        <div className="navbar-container">
+          <div className="navbar-logo" onClick={() => handleNavClick('home')}>
+            <div className="logo-icon-wrap">
+              <Building2 size={22} />
+            </div>
+            <span className="logo-text">RealProperties</span>
+          </div>
 
-          {/* Desktop Nav */}
-          <div className="navbar-links desktop-only" style={{ display: 'flex', gap: '2.5rem', alignItems: 'center' }}>
+          <div className="navbar-links desktop-only">
             {navLinks.map((link) => (
-              <motion.button 
-                key={link.id} 
-                whileHover={{ y: -2 }}
-                className={`nav-link ${activeTab === link.id ? 'active' : ''}`} 
+              <motion.button
+                key={link.id}
                 onClick={() => handleNavClick(link.id)}
-                style={{ 
-                  position: 'relative', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '0.5rem', 
-                  background: 'none', 
-                  border: 'none', 
-                  color: scrolled ? 'var(--text-main)' : '#ffffff', 
-                  fontSize: '1rem', 
-                  cursor: 'pointer', 
-                  opacity: activeTab === link.id ? 1 : 0.8, 
-                  transition: 'all 0.2s' 
-                }}
+                className={`nav-link ${activeTab === link.id ? 'active' : ''}`}
               >
-                {link.icon}
-                <span>{link.name}</span>
-                {activeTab === link.id && (
-                  <motion.div 
-                    layoutId="nav-indicator"
-                    className="nav-link-indicator"
-                    transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                  />
-                )}
+                {activeTab === link.id && <motion.div layoutId="nav-indicator" className="nav-link-indicator" />}
+                <span style={{ position: 'relative', zIndex: 1 }}>{link.name}</span>
               </motion.button>
             ))}
           </div>
 
-          <div className="navbar-cta desktop-only" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-             <motion.button 
-               whileHover={{ scale: 1.1, rotate: 15 }}
-               whileTap={{ scale: 0.9 }}
-               onClick={toggleTheme}
-               style={{ background: 'var(--surface-color)', border: '1px solid var(--border-color)', color: 'var(--text-main)', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '42px', height: '42px', borderRadius: '50%', cursor: 'pointer', backdropFilter: 'blur(8px)' }}
-               aria-label="Toggle theme"
-             >
-               {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-             </motion.button>
-             <motion.button 
-               whileHover={{ scale: 1.05, boxShadow: "0 0 20px rgba(99, 102, 241, 0.5)", backgroundColor: 'var(--primary-hover)' }}
-               whileTap={{ scale: 0.95 }}
-               className="btn-primary" 
-               onClick={() => handleNavClick('properties')}
-               style={{ background: 'var(--primary)', color: 'white', border: 'none', padding: '0.75rem 1.5rem', borderRadius: '50px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s' }}
-             >
-               Explore Properties
-             </motion.button>
-          </div>
+          <div className="navbar-cta">
+            <button className="theme-toggle desktop-only" onClick={toggleTheme} title="Toggle theme">
+              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+            </button>
 
-          {/* Mobile Menu Toggle */}
-          <div className="mobile-toggle hide-desktop" style={{ display: 'none' }}>
-             <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="mobile-btn" style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer' }}>
-                {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
-             </button>
+            {user ? (
+              <>
+                <button onClick={closeAndOpenPost} className="btn-primary desktop-only" style={{ paddingInline: '1.1rem' }}>
+                  <Plus size={16} />
+                  Post Property
+                </button>
+                <div
+                  className="account-chip desktop-only"
+                  onClick={() => window.dispatchEvent(new CustomEvent('switchView', { detail: 'my_properties' }))}
+                >
+                  <div className="account-chip-avatar">
+                    <User size={17} />
+                  </div>
+                  <span className="account-chip-name">{user.name?.split(' ')[0] || 'Account'}</span>
+                </div>
+                <button className="theme-toggle desktop-only" onClick={handleLogout} title="Logout">
+                  <LogOut size={16} />
+                </button>
+              </>
+            ) : (
+              <button onClick={() => setIsAuthOpen(true)} className="btn-primary desktop-only">
+                Sign In
+              </button>
+            )}
+
+            <button className="mobile-toggle hide-desktop" onClick={() => setMobileMenuOpen((prev) => !prev)}>
+              {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
           </div>
         </div>
       </motion.nav>
 
-      {/* Mobile Menu Dropdown */}
       <AnimatePresence>
         {mobileMenuOpen && (
-          <motion.div 
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="mobile-menu mobile-menu-open"
-            style={{ position: 'fixed', top: '70px', left: 0, right: 0, background: 'var(--navbar-bg-scrolled)', backdropFilter: 'blur(16px)', borderBottom: '1px solid var(--border-color)', zIndex: 998, display: 'flex', flexDirection: 'column', padding: '2rem', gap: '1.5rem', overflow: 'hidden' }}
+          <motion.div
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="mobile-menu-panel v2-surface-raised"
           >
-             {navLinks.map((link) => (
-                <motion.button 
-                  key={link.id} 
-                  whileTap={{ scale: 0.95 }}
-                  className={`mobile-nav-link ${activeTab === link.id ? 'active' : ''}`} 
-                  onClick={() => handleNavClick(link.id)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'none', border: 'none', color: 'var(--text-main)', fontSize: '1.2rem', fontWeight: 500, padding: '0.5rem 0', width: '100%', textAlign: 'left', borderBottom: '1px solid var(--border-color)' }}
-                >
-                  <span style={{ color: activeTab === link.id ? 'var(--primary)' : 'var(--text-muted)' }}>{link.icon}</span>
+            <div className="mobile-menu-links">
+              {navLinks.map((link) => (
+                <button key={link.id} className="nav-link" onClick={() => handleNavClick(link.id)}>
                   {link.name}
-                </motion.button>
-             ))}
-             <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-               <motion.button 
-                 whileTap={{ scale: 0.95 }}
-                 onClick={toggleTheme}
-                 style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-color)', color: 'white', padding: '0.75rem', borderRadius: '50px', cursor: 'pointer', flex: 1, fontSize: '1rem' }}
-               >
-                 {theme === 'dark' ? <><Sun size={18}/> Light Mode</> : <><Moon size={18}/> Dark Mode</>}
-               </motion.button>
-             </div>
-             <motion.button 
-               whileTap={{ scale: 0.95 }}
-               className="btn-primary" 
-               onClick={() => handleNavClick('properties')}
-               style={{ width: '100%', padding: '0.8rem' }}
-             >
-               View Approved Properties
-             </motion.button>
+                </button>
+              ))}
+            </div>
+
+            <div style={{ display: 'grid', gap: '0.7rem', marginTop: '1rem' }}>
+              {user ? (
+                <>
+                  <button className="btn-primary" onClick={closeAndOpenPost}>
+                    <Plus size={16} />
+                    Post Property
+                  </button>
+                  <button
+                    className="btn-outline"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      window.dispatchEvent(new CustomEvent('switchView', { detail: 'my_properties' }));
+                    }}
+                  >
+                    <User size={16} />
+                    My Properties
+                  </button>
+                  <button className="btn-outline" onClick={handleLogout}>
+                    <LogOut size={16} />
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <button
+                  className="btn-primary"
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    setIsAuthOpen(true);
+                  }}
+                >
+                  Sign In
+                </button>
+              )}
+
+              <button className="btn-outline" onClick={toggleTheme}>
+                {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
+                {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
+              </button>
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AuthModal
+        isOpen={isAuthOpen}
+        onClose={() => setIsAuthOpen(false)}
+        onLoginSuccess={(userData) => {
+          setUser(userData);
+          setIsAuthOpen(false);
+          window.dispatchEvent(new CustomEvent('authChange'));
+        }}
+      />
     </>
   );
 };

@@ -1,159 +1,173 @@
-import React, { useState, useEffect } from 'react';
-import { Search } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useEffect, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { ArrowRight, BadgeCheck, MapPin, Search, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react';
 
 const heroImages = [
-  'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
-  'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80',
-  'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80'
+  'https://images.unsplash.com/photo-1600607687644-c7171b42498f?auto=format&fit=crop&w=1800&q=80',
+  'https://images.unsplash.com/photo-1605146769289-440113cc3d00?auto=format&fit=crop&w=1800&q=80',
+  'https://images.unsplash.com/photo-1511818966892-d7d671e672a2?auto=format&fit=crop&w=1800&q=80'
+];
+
+const highlights = [
+  {
+    icon: <ShieldCheck size={16} />,
+    title: 'Verified listings',
+    copy: 'Approved and community-submitted properties surfaced in one guided discovery flow.'
+  },
+  {
+    icon: <TrendingUp size={16} />,
+    title: 'Built for decisions',
+    copy: 'Clear pricing, region context, and lead-ready contact actions to reduce drop-off.'
+  },
+  {
+    icon: <BadgeCheck size={16} />,
+    title: 'Trust-first experience',
+    copy: 'Professional presentation that helps buyers engage faster and owners list with confidence.'
+  }
 ];
 
 const HeroSection = ({ onExplore, onSearch }) => {
-  const [searchValue, setSearchValue] = useState("");
-  const [currentImageIdx, setCurrentImageIdx] = useState(0);
+  const [searchValue, setSearchValue] = useState('');
+  const [currentIdx, setCurrentIdx] = useState(0);
   const [isFocused, setIsFocused] = useState(false);
 
-  // Auto-cycle hero images every 5 seconds
   useEffect(() => {
     const timer = setInterval(() => {
-      setCurrentImageIdx((prev) => (prev + 1) % heroImages.length);
-    }, 5000);
+      setCurrentIdx((prev) => (prev + 1) % heroImages.length);
+    }, 5500);
     return () => clearInterval(timer);
   }, []);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    const term = searchValue.trim();
-    if (term) {
-      onSearch(term);   
-    } else {
-      onExplore();      
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    const trimmed = searchValue.trim();
+    if (trimmed) {
+      onSearch(trimmed);
+      return;
     }
-  };
-
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.2,
-        delayChildren: 0.3
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] }
-    }
+    onExplore();
   };
 
   return (
-    <section className="hero-section" style={{ position: 'relative', overflow: 'hidden' }}>
-      {/* Background Image Carousel with absolute positioning */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 0 }}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={currentImageIdx}
-            initial={{ opacity: 0, scale: 1.1 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 1.5 }}
-            className="hero-bg-image"
-            style={{
-              position: 'absolute',
-              top: 0, left: 0, right: 0, bottom: 0,
-              backgroundImage: `url(${heroImages[currentImageIdx]})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
-          />
-        </AnimatePresence>
-        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.7) 100%)' }} />
-      </div>
+    <section id="home" className="hero-section">
+      <div className="section-container">
+        <div className="hero-shell">
+          <div className="hero-visual-layer">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentIdx}
+                className="hero-bg-frame"
+                style={{ backgroundImage: `url(${heroImages[currentIdx]})` }}
+                initial={{ opacity: 0, scale: 1.05 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 1.4, ease: 'easeOut' }}
+              />
+            </AnimatePresence>
+            <div className="hero-overlay-depth" />
+          </div>
 
-      <motion.div 
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="hero-content"
-        style={{ position: 'relative', zIndex: 10 }}
-      >
-        <motion.p variants={itemVariants} className="hero-eyebrow" style={{ display: 'inline-block', padding: '0.5rem 1.5rem', background: 'rgba(99, 102, 241, 0.3)', border: '1px solid rgba(99, 102, 241, 0.5)', borderRadius: '100px', color: '#c7d2fe', fontWeight: '600', marginBottom: '2rem', backdropFilter: 'blur(10px)' }}>
-          TRUSTED PROPERTY CONSULTANTS
-        </motion.p>
-        
-        <h1 className="hero-title" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px', color: '#ffffff' }}>
-          {"Find Your Perfect Property, Faster.".split(" ").map((word, i) => (
-            <motion.span
-              key={i}
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.3 + i * 0.1, ease: "easeOut" }}
-              style={{ color: '#ffffff' }}
-            >
-              {word}
-            </motion.span>
-          ))}
-        </h1>
-        
-        <motion.p variants={itemVariants} className="hero-subtitle" style={{ color: 'rgba(255,255,255,0.8)' }}>
-          Discover 100% approved residential & commercial real estate across Andhra Pradesh and Telangana.
-        </motion.p>
-
-        <motion.form 
-          variants={itemVariants}
-          className="zillow-search-container" 
-          onSubmit={handleSearch}
-        >
-          <motion.div 
-            animate={{ 
-              scale: isFocused ? 1.02 : 1,
-              boxShadow: isFocused ? "0 20px 40px rgba(0,0,0,0.3)" : "0 10px 30px rgba(0,0,0,0.25)"
-            }}
-            className="zillow-search-bar"
-          >
-            <input 
-              type="text" 
-              className="zillow-search-input" 
-              placeholder="Search by location, city or property type..."
-              value={searchValue}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
-              onChange={(e) => setSearchValue(e.target.value)}
-              style={{ color: '#ffffff' }}
-            />
-            <motion.button 
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              type="submit" 
-              className="zillow-search-btn" 
-              aria-label="Search properties"
-            >
-              <Search size={22} strokeWidth={2.5} />
-            </motion.button>
-          </motion.div>
-        </motion.form>
-        
-        {/* Carousel dots */}
-        <motion.div variants={itemVariants} className="hero-dots" style={{ display: 'flex', gap: '1rem', marginTop: '3rem' }}>
-          {heroImages.map((_, i) => (
+          <div className="hero-content">
             <motion.div
-              key={i}
-              onClick={() => setCurrentImageIdx(i)}
-              animate={{ 
-                width: currentImageIdx === i ? 40 : 12,
-                backgroundColor: currentImageIdx === i ? 'var(--primary)' : 'rgba(255,255,255,0.3)'
-              }}
-              style={{ height: '12px', borderRadius: '6px', cursor: 'pointer' }}
-              transition={{ duration: 0.3 }}
-            />
-          ))}
-        </motion.div>
-      </motion.div>
+              className="hero-copy-panel"
+              initial={{ opacity: 0, y: 28 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.65, ease: 'easeOut' }}
+            >
+              <span className="section-eyebrow">
+                <Sparkles size={14} />
+                Refined Property Discovery
+              </span>
+
+              <h1 className="hero-title">
+                Find the right property with more trust, less friction.
+              </h1>
+
+              <p className="hero-subtitle">
+                A redesigned real-estate experience for browsing verified opportunities, exploring local demand,
+                and posting listings with a polished, mobile-first journey that feels credible from the first click.
+              </p>
+
+              <form className={`hero-command-center ${isFocused ? 'focused' : ''}`} onSubmit={handleSubmit}>
+                <div className="command-icon">
+                  <MapPin size={18} />
+                </div>
+                <input
+                  type="text"
+                  placeholder="Search by locality, district, landmark, or property type"
+                  value={searchValue}
+                  onChange={(event) => setSearchValue(event.target.value)}
+                  onFocus={() => setIsFocused(true)}
+                  onBlur={() => setIsFocused(false)}
+                />
+                <button type="submit" className="btn-primary command-btn">
+                  <Search size={16} />
+                  Search Now
+                </button>
+              </form>
+
+              <div className="hero-cta-row">
+                <button type="button" className="btn-outline" onClick={onExplore}>
+                  Explore Listings
+                  <ArrowRight size={16} />
+                </button>
+              </div>
+
+              <div className="hero-spatial-stats">
+                {[
+                  { value: '500+', label: 'active opportunities' },
+                  { value: '10k+', label: 'high-intent users reached' },
+                  { value: '24/7', label: 'responsive across devices' }
+                ].map((item) => (
+                  <div key={item.label} className="spatial-stat-item">
+                    <span className="stat-val">{item.value}</span>
+                    <span className="stat-label">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+
+            <motion.aside
+              className="hero-side-panel"
+              initial={{ opacity: 0, y: 36 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, delay: 0.12, ease: 'easeOut' }}
+            >
+              <h3 className="hero-side-headline">Why this redesign performs better</h3>
+              <p className="hero-side-copy">
+                Stronger visual hierarchy, fewer dead ends, and clearer buyer-owner actions help increase attention,
+                trust, and conversion across desktop, tablet, and mobile.
+              </p>
+
+              <div className="hero-highlights">
+                {highlights.map((item) => (
+                  <div key={item.title} className="hero-highlight">
+                    <div className="hero-highlight-bullet">{item.icon}</div>
+                    <div>
+                      <h4>{item.title}</h4>
+                      <p>{item.copy}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="hero-trust-strip">
+                {[
+                  ['Inventory', 'Plots, villas, apartments'],
+                  ['Actions', 'Browse, login, post, manage'],
+                  ['Responsive', 'Mobile, tablet, desktop'],
+                  ['Support', 'Direct inquiry ready']
+                ].map(([label, value]) => (
+                  <div key={label} className="trust-chip">
+                    <span className="trust-chip-label">{label}</span>
+                    <span className="trust-chip-value">{value}</span>
+                  </div>
+                ))}
+              </div>
+            </motion.aside>
+          </div>
+        </div>
+      </div>
     </section>
   );
 };

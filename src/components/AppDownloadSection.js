@@ -1,74 +1,79 @@
 import React from 'react';
-import { Play, Apple } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Apple, Play, Smartphone, Sparkles } from 'lucide-react';
 
 const AppDownloadSection = () => {
-  const containerVariants = {
-    hidden: { opacity: 0, y: 30 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: {
-        duration: 0.8,
-        staggerChildren: 0.2
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0 }
-  };
-
   return (
-    <section className="app-download-section" style={{ background: 'var(--bg-color)', padding: '5rem 1rem' }}>
-      <motion.div 
-        variants={containerVariants}
-        initial="hidden"
-        whileInView="visible"
-        viewport={{ once: true }}
-        className="download-content glass-panel" 
-        style={{ maxWidth: '1000px', margin: '0 auto', padding: '4rem 2rem', textAlign: 'center' }}
-      >
-        <motion.h2 variants={itemVariants} className="download-title" style={{ fontSize: '3rem', fontWeight: '800', marginBottom: '1.5rem', color: 'var(--text-main)' }}>
-          Experience Wealth Associates <span style={{ color: 'var(--primary)' }}>on the Go</span>
-        </motion.h2>
-        <motion.p variants={itemVariants} className="download-subtitle" style={{ fontSize: '1.2rem', color: 'var(--text-muted)', marginBottom: '3rem', maxWidth: '700px', margin: '0 auto 3rem' }}>
-          Get seamless, real-time access to our exclusive real estate portfolio and expert panel directly from your mobile device. Stay ahead in the market with instant notifications.
-        </motion.p>
-        <motion.div variants={itemVariants} className="download-buttons" style={{ display: 'flex', gap: '1.5rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <motion.a 
-            whileHover={{ scale: 1.05, boxShadow: "0 0 25px rgba(99, 102, 241, 0.4)" }}
-            whileTap={{ scale: 0.95 }}
-            href="https://play.google.com/store/apps/details?id=com.wealthassociates.alpha" 
-            target="_blank" 
-            rel="noreferrer" 
-            className="store-btn google-play"
-            style={{ background: 'var(--surface-raised)', border: '1px solid var(--border-color)', padding: '0.8rem 1.5rem', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '1rem', textDecoration: 'none', color: 'var(--text-main)' }}
-          >
-            <Play size={28} />
-            <div className="store-text" style={{ textAlign: 'left' }}>
-              <span style={{ fontSize: '0.7rem', display: 'block', opacity: 0.7, fontWeight: '500' }}>GET IT ON</span>
-              <strong style={{ fontSize: '1.2rem', fontWeight: '700' }}>Google Play</strong>
+    <section className="app-download-section">
+      <div className="section-container">
+        <div className="app-download-card">
+          <div className="app-download-copy">
+            <span className="section-eyebrow">
+              <Smartphone size={14} />
+              Mobile Ready
+            </span>
+            <h2 className="v2-title-xl" style={{ marginTop: '1rem' }}>
+              Continue the same polished experience on the go.
+            </h2>
+            <p className="v2-p-lg" style={{ marginTop: '1rem' }}>
+              The redesign now introduces a more product-led web journey while still connecting users to the existing
+              mobile ecosystem for ongoing discovery, inquiries, and property management.
+            </p>
+
+            <div className="app-download-actions">
+              <a
+                href="https://play.google.com/store/apps/details?id=com.wealthassociates.alpha"
+                target="_blank"
+                rel="noreferrer"
+                className="btn-outline store-button"
+              >
+                <Play size={22} />
+                <span>
+                  <small>Android App</small>
+                  <strong>Google Play</strong>
+                </span>
+              </a>
+
+              <a
+                href="https://apps.apple.com/us/app/wealth-associate/id6743356719"
+                target="_blank"
+                rel="noreferrer"
+                className="btn-outline store-button"
+              >
+                <Apple size={22} />
+                <span>
+                  <small>iOS App</small>
+                  <strong>App Store</strong>
+                </span>
+              </a>
             </div>
-          </motion.a>
-          <motion.a 
-            whileHover={{ scale: 1.05, boxShadow: "0 0 25px rgba(255, 255, 255, 0.2)" }}
-            whileTap={{ scale: 0.95 }}
-            href="https://apps.apple.com/us/app/wealth-associate/id6743356719" 
-            target="_blank" 
-            rel="noreferrer" 
-            className="store-btn app-store"
-            style={{ background: 'var(--surface-raised)', border: '1px solid var(--border-color)', padding: '0.8rem 1.5rem', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '1rem', textDecoration: 'none', color: 'var(--text-main)' }}
-          >
-            <Apple size={32} />
-            <div className="store-text" style={{ textAlign: 'left' }}>
-              <span style={{ fontSize: '0.7rem', display: 'block', opacity: 0.7, fontWeight: '500' }}>Download on the</span>
-              <strong style={{ fontSize: '1.2rem', fontWeight: '700' }}>App Store</strong>
+          </div>
+
+          <div className="app-download-preview">
+            <div className="preview-card">
+              <span className="section-eyebrow">
+                <Sparkles size={14} />
+                Better Retention
+              </span>
+              <h4 style={{ marginTop: '1rem' }}>One visual system across web and mobile</h4>
+              <p>
+                Consistency helps users trust the brand faster, continue their journey on any device, and return with
+                less confusion.
+              </p>
             </div>
-          </motion.a>
-        </motion.div>
-      </motion.div>
+
+            <div className="preview-stat-grid">
+              <div className="preview-card">
+                <h4>Responsive</h4>
+                <p>Optimized layouts for phones, tablets, laptops, and large screens.</p>
+              </div>
+              <div className="preview-card">
+                <h4>Actionable</h4>
+                <p>Built to move users from browsing into inquiry and listing submission.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
   );
 };
