@@ -1391,7 +1391,7 @@ body.modal-open {
 
 .footer-bottom {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   gap: 1rem;
   margin-top: 1rem;
