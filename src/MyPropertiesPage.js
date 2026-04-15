@@ -64,7 +64,8 @@ export default function MyPropertiesPage() {
   useEffect(() => {
     const fetchProps = async () => {
       try {
-        const response = await fetch('http://localhost:3000/realproperties/property/get');
+        // Use production API for My Properties fetch
+        const response = await fetch('https://api.wealthassociate.in/realproperties/property/get');
         if (!response.ok) {
           throw new Error('Unable to fetch your properties');
         }

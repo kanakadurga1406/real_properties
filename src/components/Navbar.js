@@ -6,6 +6,7 @@ import AuthModal from './AuthModal';
 const navLinks = [
   { name: 'Home', id: 'home' },
   { name: 'Why Us', id: 'features' },
+  { name: 'Partners', id: 'network' },
   { name: 'Listings', id: 'properties' },
   { name: 'Contact', id: 'contact' }
 ];
@@ -40,7 +41,7 @@ const Navbar = ({ onExplore }) => {
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 18);
-      const sections = ['contact', 'properties', 'features', 'home'];
+      const sections = ['contact', 'properties', 'network', 'features', 'home'];
       const current = sections.find((id) => {
         const element = document.getElementById(id);
         return element && window.scrollY >= element.offsetTop - 180;

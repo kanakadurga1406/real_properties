@@ -62,7 +62,8 @@ const PostPropertyModal = ({ isOpen, onClose, user, onPropertyAdded }) => {
     }
 
     try {
-      const response = await fetch('http://localhost:3000/realproperties/property/add', {
+      // Point to production API
+      const response = await fetch('https://api.wealthassociate.in/realproperties/property/add', {
         method: 'POST',
         body: payload
       });

@@ -1,18 +1,30 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
+  AlertCircle,
   ArrowRight,
+  ArrowUpDown,
   Building2,
+  Check,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  Compass,
+  Droplets,
+  FileCheck2,
   Filter,
   Grid,
+  Home,
+  Layers,
   Loader2,
   MapPin,
   Phone,
+  PhoneCall,
+  Ruler,
   Search,
   Tag,
+  Trees,
+  User,
   X
 } from 'lucide-react';
 import PostPropertyModal from './components/PostPropertyModal';
@@ -20,8 +32,17 @@ import './App.css';
 
 const fallbackImage = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80';
 
-const propertyTypeOptions = ['All', 'Villa', 'Apartment', 'Plot', 'Sale', 'Rent'];
-const originOptions = ['All', 'Wealth Associate', 'Verified', 'Community'];
+const propertyTypeOptions = [
+  'All',
+  'FLAT(APARTMENT)',
+  'HOUSE(INDIVIDUAL)',
+  'LAND(OPENSITE)',
+  'COMMERCIAL PROPERTY',
+  'COMMERCIAL LAND',
+  'AGRICULTURE LAND',
+  'PLOT(LAYOUT)',
+  'VILLA',
+];
 
 const ImageCarousel = ({ images, altText }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -73,18 +94,111 @@ const ImageCarousel = ({ images, altText }) => {
 };
 
 function PropertiesPage({ heroSearchTerm = '' }) {
-  const [properties, setProperties] = useState([]);
-  const [wealthAssociateProperties, setWealthAssociateProperties] = useState([]);
-  const [unapprovedProperties, setUnapprovedProperties] = useState([]);
+  // approvedProperties = ALL approved props (includes Wealth Associate admin-posted + agent-posted approved)
+  const [approvedProperties, setApprovedProperties] = useState([]);
+  // communityProperties = posted via real_properties website by public users
+  const [communityProperties, setCommunityProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedType, setSelectedType] = useState('All');
-  const [originFilter, setOriginFilter] = useState('All');
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [isPostOpen, setIsPostOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
   const [visibleCount, setVisibleCount] = useState(6);
+  const [activeCategory, setActiveCategory] = useState('approved'); // Toggle for Approved vs Community
+
+  // Lock body scroll and update dynamic SEO when property detail panel is open
+  useEffect(() => {
+    let schemaScript = document.getElementById('dynamic-seo-schema');
+    
+    // Helper to safely update or append meta tags
+    const updateMetaTag = (property, name, content) => {
+      let tag = document.querySelector(`meta[property="${property}"], meta[name="${name}"]`);
+      if (!tag) {
+        tag = document.createElement('meta');
+        if (property) tag.setAttribute('property', property);
+        if (name) tag.setAttribute('name', name);
+        document.head.appendChild(tag);
+      }
+      tag.content = content;
+    };
+
+    if (selectedProperty) {
+      document.body.classList.add('modal-open');
+
+      // 1. Core SEO Details
+      const location = selectedProperty.location || selectedProperty.city || 'Andhra Pradesh & Telangana';
+      const type = selectedProperty.propertyType || 'Real Estate';
+      const priceText = selectedProperty.price ? `₹${Number(selectedProperty.price).toLocaleString('en-IN')}` : 'Contact for Price';
+      const title = `${type} in ${location} - ${priceText} | Real Properties`;
+      const desc = `Check out this verified ${type.toLowerCase()} located in ${location}. Priced at ${priceText}. View details, layout, and contact Wealth Associates to secure this listing.`;
+      const imageUrl = selectedProperty.photo || selectedProperty.newImageUrls || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&h=630&fit=crop';
+      const propertyUrl = window.location.href;
+
+      document.title = title;
+      updateMetaTag(null, 'description', desc);
+
+      // 2. OpenGraph & Twitter Social Search Cards
+      updateMetaTag('og:title', null, title);
+      updateMetaTag('og:description', null, desc);
+      updateMetaTag('og:image', null, imageUrl);
+      updateMetaTag('og:url', null, propertyUrl);
+      updateMetaTag(null, 'twitter:setImage', imageUrl);
+      updateMetaTag(null, 'twitter:title', title);
+      updateMetaTag(null, 'twitter:description', desc);
+
+      // 3. Dynamic Structured Data (Schema JSON-LD) for Google "Rich Results"
+      if (!schemaScript) {
+        schemaScript = document.createElement('script');
+        schemaScript.type = 'application/ld+json';
+        schemaScript.id = 'dynamic-seo-schema';
+        document.head.appendChild(schemaScript);
+      }
+      
+      const structuredData = {
+        "@context": "https://schema.org",
+        "@type": "Product",
+        "name": `${type} in ${location}`,
+        "image": imageUrl,
+        "description": desc,
+        "offers": {
+          "@type": "Offer",
+          "url": propertyUrl,
+          "priceCurrency": "INR",
+          "price": selectedProperty.price ? selectedProperty.price.toString() : "0",
+          "itemCondition": "https://schema.org/NewCondition",
+          "availability": "https://schema.org/InStock",
+          "seller": {
+            "@type": "RealEstateAgent",
+            "name": "Wealth Associates"
+          }
+        }
+      };
+      schemaScript.text = JSON.stringify(structuredData);
+
+    } else {
+      document.body.classList.remove('modal-open');
+      
+      // Reset Default SEO
+      const defTitle = "Real Properties | 100% Approved Plots, Villas & Flats | Wealth Associates";
+      const defDesc = "Browse 100% legally approved residential and commercial properties across Andhra Pradesh and Telangana. Find plots, villas, flats & land for sale.";
+      const defImg = "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&h=630&fit=crop";
+      
+      document.title = defTitle;
+      updateMetaTag(null, 'description', defDesc);
+      updateMetaTag('og:title', null, defTitle);
+      updateMetaTag('og:description', null, defDesc);
+      updateMetaTag('og:image', null, defImg);
+      updateMetaTag('og:url', null, window.location.href.split('#')[0]); // Base URL
+      
+      // Remove specific property schema when closed so Google doesn't misindex the homepage
+      if (schemaScript) {
+        schemaScript.remove();
+      }
+    }
+    return () => document.body.classList.remove('modal-open');
+  }, [selectedProperty]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem('realprop_user');
@@ -110,29 +224,50 @@ function PropertiesPage({ heroSearchTerm = '' }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [approvedResponse, wealthAssociateResponse, unapprovedResponse] = await Promise.all([
-          fetch('http://localhost:3000/properties/getApproveProperty'),
-          fetch('http://localhost:3000/properties/getAdminProperties'),
-          fetch('http://localhost:3000/realproperties/property/get')
-        ]);
+        // ------ 1. Approved / Wealth Associate properties ------
+        let approved = [];
+        try {
+          const approvedResponse = await fetch(
+            'https://api.wealthassociate.in/properties/getApproveProperty'
+          );
+          if (approvedResponse.ok) {
+            const approvedData = await approvedResponse.json();
+            approved = Array.isArray(approvedData)
+              ? approvedData
+              : approvedData.properties || [];
+            approved = approved.map(p => ({ ...p, isApproved: true }));
+            approved.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          } else {
+            console.warn('Approved properties endpoint error:', approvedResponse.status);
+          }
+        } catch (err) {
+          console.warn('Failed to fetch approved properties:', err.message);
+        }
 
-        const approvedData = await approvedResponse.json();
-        const wealthAssociateData = await wealthAssociateResponse.json();
-        const unapprovedData = await unapprovedResponse.json();
+        // ------ 2. Community / real_properties website submissions ------
+        let community = [];
+        try {
+          const communityResponse = await fetch(
+            'https://api.wealthassociate.in/realproperties/property/get'
+          );
+          if (communityResponse.ok) {
+            const communityData = await communityResponse.json();
+            community = Array.isArray(communityData) ? communityData : [];
+            community = community.map(p => ({ ...p, isApproved: false }));
+            community.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          } else {
+            console.warn('Community properties endpoint error:', communityResponse.status);
+          }
+        } catch (err) {
+          console.warn('Failed to fetch community properties:', err.message);
+        }
 
-        const approvedProperties = Array.isArray(approvedData) ? approvedData : approvedData.properties || [];
-        const wealthProperties = Array.isArray(wealthAssociateData)
-          ? wealthAssociateData
-          : wealthAssociateData.MyPosts || wealthAssociateData.properties || [];
-        const draftProperties = Array.isArray(unapprovedData) ? unapprovedData : [];
+        setApprovedProperties(approved);
+        setCommunityProperties(community);
 
-        approvedProperties.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        wealthProperties.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        draftProperties.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
-        setProperties(approvedProperties);
-        setWealthAssociateProperties(wealthProperties);
-        setUnapprovedProperties(draftProperties);
+        if (approved.length === 0 && community.length === 0) {
+          setError('No properties found. Please try again later.');
+        }
       } catch (err) {
         setError(err.message || 'Failed to load properties');
       } finally {
@@ -201,18 +336,18 @@ function PropertiesPage({ heroSearchTerm = '' }) {
   };
 
   const allProperties = useMemo(() => {
-    const wealthAssociate = wealthAssociateProperties.map((property) => ({
-      ...property,
-      sourceType: 'Wealth Associate'
-    }));
-    const approved = properties.map((property) => ({ ...property, sourceType: 'Verified' }));
-    const community = unapprovedProperties.map((property) => ({ ...property, sourceType: 'Community' }));
-
-    return [...wealthAssociate, ...approved, ...community].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  }, [wealthAssociateProperties, properties, unapprovedProperties]);
+    // Merge: approved (from WealthAssociate backend) + community (from real_properties website)
+    return [
+      ...approvedProperties,
+      ...communityProperties
+    ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }, [approvedProperties, communityProperties]);
 
   const filteredProperties = useMemo(() => {
     return allProperties.filter((property) => {
+      // Category filter
+      const matchesCategory = activeCategory === 'approved' ? property.isApproved : !property.isApproved;
+
       const query = searchTerm.trim().toLowerCase();
       const matchesSearch = !query
         ? true
@@ -223,60 +358,66 @@ function PropertiesPage({ heroSearchTerm = '' }) {
       const matchesType =
         selectedType === 'All' ? true : String(property.propertyType || '').toLowerCase() === selectedType.toLowerCase();
 
-      const matchesOrigin = originFilter === 'All' ? true : property.sourceType === originFilter;
-
-      return matchesSearch && matchesType && matchesOrigin;
+      return matchesCategory && matchesSearch && matchesType;
     });
-  }, [allProperties, searchTerm, selectedType, originFilter]);
+  }, [allProperties, searchTerm, selectedType, activeCategory]);
 
   const visibleProperties = filteredProperties.slice(0, visibleCount);
 
   const PropertyCard = ({ property }) => {
     const propertyImages = getAllImages(property);
+    const dd = property.dynamicData || {};
+    const bhk = dd.bhk || '';
+    const area = dd.area || (dd.agricultureDetails?.extent) || (dd.plotLocation ? dd.area : '');
     const specs = [
       property.propertyType || 'Property',
-      property.district || 'Location pending',
-      property.dynamicData?.sqft ? `${property.dynamicData.sqft} sqft` : null
+      property.Constituency || property.district || '',
     ].filter(Boolean);
 
     return (
       <motion.article layout whileHover={{ y: -4 }} className="zillow-card" onClick={() => setSelectedProperty(property)}>
         <div className="zillow-image-container">
           <ImageCarousel images={propertyImages} altText={property.location || 'Property'} />
-          <span className="zillow-badge">
-            {property.sourceType === 'Wealth Associate'
-              ? 'Wealth Associate'
-              : property.sourceType === 'Verified'
-              ? 'Verified Listing'
-              : 'Community Listing'}
-          </span>
-          <span className="zillow-image-count">{propertyImages.length} photos</span>
+          <div className="zillow-badge" style={{ 
+            background: property.isApproved ? 'var(--primary)' : '#eab308', 
+            color: property.isApproved ? 'var(--primary-inverse)' : '#1f2937',
+            border: 'none', top: '10px', left: '10px'
+          }}>
+            {property.isApproved ? 'Approved' : 'Non-Approved'}
+          </div>
+          <span className="zillow-image-count">{propertyImages.length} photo{propertyImages.length !== 1 ? 's' : ''}</span>
         </div>
 
         <div className="zillow-info">
           <h3 className="zillow-price">{formatPrice(property.price)}</h3>
           <p className="zillow-address">
-            <MapPin size={16} />
+            <MapPin size={14} />
             {property.location || 'Location unavailable'}
           </p>
 
+          {/* BHK + Area quick row */}
+          {(bhk || area) && (
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', margin: '0.3rem 0' }}>
+              {bhk && <span className="spec-pill" style={{ background: 'var(--accent)', color: '#fff' }}>{bhk}</span>}
+              {area && <span className="spec-pill">{area}</span>}
+            </div>
+          )}
+
           <div className="zillow-specs">
             {specs.map((spec) => (
-              <span key={spec} className="spec-pill">
-                {spec}
-              </span>
+              <span key={spec} className="spec-pill">{spec}</span>
             ))}
           </div>
 
+          {property.propertyDetails && property.propertyDetails !== 'no details' && (
+            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.4rem', lineHeight: 1.4 }}>
+              {property.propertyDetails.length > 80 ? property.propertyDetails.slice(0, 80) + '…' : property.propertyDetails}
+            </p>
+          )}
+
           <div className="zillow-card-footer">
             <span className="zillow-agent-tag">
-              {property.sourceType === 'Wealth Associate'
-                ? 'Posted by Wealth Associate'
-                : property.sourceType === 'Verified'
-                ? 'Professional listing'
-                : property.fullName
-                ? `Posted by ${property.fullName}`
-                : 'Community submitted'}
+              {property.fullName ? `Posted by ${property.fullName}` : 'Wealth Associates'}
             </span>
             <ArrowRight size={18} />
           </div>
@@ -284,6 +425,7 @@ function PropertiesPage({ heroSearchTerm = '' }) {
       </motion.article>
     );
   };
+
 
   if (loading) {
     return (
@@ -352,22 +494,6 @@ function PropertiesPage({ heroSearchTerm = '' }) {
             </select>
           </div>
 
-          <div className="catalog-filter">
-            <select
-              value={originFilter}
-              onChange={(event) => {
-                setOriginFilter(event.target.value);
-                setVisibleCount(6);
-              }}
-            >
-              {originOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option === 'All' ? 'All listing sources' : option}
-                </option>
-              ))}
-            </select>
-          </div>
-
           <button className="btn-primary" onClick={() => setVisibleCount(6)}>
             <Filter size={16} />
             Refine
@@ -376,10 +502,38 @@ function PropertiesPage({ heroSearchTerm = '' }) {
 
         <div className="results-bar">
           <div>
-            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.35rem' }}>Available properties</h3>
-            <p className="results-meta">Responsive card layout with clearer details and stronger click targets.</p>
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.8rem' }}>
+              <button 
+                onClick={() => { setActiveCategory('approved'); setVisibleCount(6); }}
+                style={{
+                  padding: '8px 16px', borderRadius: '30px', fontWeight: 'bold', cursor: 'pointer',
+                  border: activeCategory === 'approved' ? 'none' : '1px solid var(--line)',
+                  background: activeCategory === 'approved' ? 'var(--primary)' : 'transparent',
+                  color: activeCategory === 'approved' ? 'white' : 'var(--text-soft)'
+                }}
+              >
+                Verified Properties
+              </button>
+              <button 
+                onClick={() => { setActiveCategory('community'); setVisibleCount(6); }}
+                style={{
+                  padding: '8px 16px', borderRadius: '30px', fontWeight: 'bold', cursor: 'pointer',
+                  border: activeCategory === 'community' ? 'none' : '1px solid var(--line)',
+                  background: activeCategory === 'community' ? '#eab308' : 'transparent',
+                  color: activeCategory === 'community' ? '#1f2937' : 'var(--text-soft)'
+                }}
+              >
+                Non-Approved Properties
+              </button>
+            </div>
+            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.35rem' }}>
+              {activeCategory === 'approved' ? 'Verified Official Inventory' : 'Community Postings'}
+            </h3>
+            <p className="results-meta">
+              {activeCategory === 'approved' ? 'These properties have been legally vetted and approved by Wealth Associates.' : 'These properties were submitted by users and agents and are pending official verification.'}
+            </p>
           </div>
-          <div className="results-count">
+          <div className="results-count" style={{ alignSelf: 'flex-end' }}>
             <Tag size={14} />
             {filteredProperties.length} results
           </div>
@@ -389,7 +543,7 @@ function PropertiesPage({ heroSearchTerm = '' }) {
           <div className="property-grid">
             <AnimatePresence>
               {visibleProperties.map((property) => (
-                <PropertyCard key={`${property.sourceType}-${property._id}`} property={property} />
+                <PropertyCard key={property._id} property={property} />
               ))}
             </AnimatePresence>
           </div>
@@ -410,84 +564,219 @@ function PropertiesPage({ heroSearchTerm = '' }) {
       </div>
 
       <AnimatePresence>
-        {selectedProperty && (
-          <motion.div
-            className="sidebar-overlay"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setSelectedProperty(null)}
-          >
+        {selectedProperty && (() => {
+          const sp = selectedProperty;
+          const dd = sp.dynamicData || {};
+          const agri = dd.agricultureDetails || null;
+          const isAgri = !!agri;
+          const isPlot = !!dd.plotLocation || !!dd.ventureName;
+          const fac = dd.facilities || {};
+
+          const coreDetails = [
+            sp.propertyType && { label: 'Property Type', value: sp.propertyType, icon: <Building2 size={16} color="var(--accent)" /> },
+            sp.location && { label: 'Location', value: sp.location, icon: <MapPin size={16} color="var(--accent)" /> },
+            sp.Constituency && !sp.Constituency.includes('[object') && { label: 'Constituency', value: sp.Constituency, icon: <Grid size={16} color="var(--accent)" /> },
+            dd.FlatLocation && { label: 'Exact Location', value: dd.FlatLocation, icon: <MapPin size={16} color="var(--accent)" /> },
+            sp.fullName && { label: 'Posted By', value: sp.fullName, icon: <User size={16} color="var(--accent)" /> },
+            sp.PostedUserType && { label: 'Posted As', value: sp.PostedUserType, icon: <Tag size={16} color="var(--accent)" /> },
+            sp.createdAt && { label: 'Listed On', value: new Date(sp.createdAt).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }), icon: <CheckCircle2 size={16} color="var(--accent)" /> },
+          ].filter(Boolean);
+
+          const houseDetails = !isAgri && !isPlot ? [
+            dd.bhk && { label: 'BHK / Config', value: dd.bhk },
+            dd.area && { label: 'Area', value: dd.area },
+            dd.carpetArea && { label: 'Carpet Area', value: dd.carpetArea },
+            dd.totalArea && { label: 'Total Area', value: dd.totalArea },
+            dd.floors && { label: 'Floors', value: dd.floors },
+            dd.portions && { label: 'Portions', value: dd.portions },
+            dd.furnishing && { label: 'Furnishing', value: dd.furnishing },
+            dd.projectStatus && { label: 'Project Status', value: dd.projectStatus },
+            dd.direction && { label: 'Facing', value: dd.direction },
+            dd.carParking && { label: 'Car Parking', value: dd.carParking },
+            dd.BankLoanFacility && { label: 'Bank Loan', value: dd.BankLoanFacility },
+          ].filter(Boolean) : [];
+
+          const agriDetails = isAgri ? [
+            agri.extent && { label: 'Extent', value: agri.extent },
+            agri.surveyNumber && { label: 'Survey Number', value: agri.surveyNumber },
+            agri.exactLocation && { label: 'Exact Location', value: agri.exactLocation },
+            agri.passBook && { label: 'Pass Book', value: agri.passBook },
+            agri.oneB && { label: '1-B', value: agri.oneB },
+            agri.rrsr && { label: 'RRSR', value: agri.rrsr },
+            agri.fmb && { label: 'FMB', value: agri.fmb },
+            agri.boundaries && { label: 'Boundaries', value: typeof agri.boundaries === 'object' ? Object.entries(agri.boundaries).map(([k,v]) => `${k}: ${v}`).join(' | ') : agri.boundaries },
+          ].filter(Boolean) : [];
+
+          const plotDetails = isPlot ? [
+            dd.ventureName && { label: 'Venture Name', value: dd.ventureName },
+            dd.plotLocation && { label: 'Plot Location', value: dd.plotLocation },
+            dd.plotNumber && { label: 'Plot Number', value: dd.plotNumber },
+            dd.area && { label: 'Area', value: dd.area },
+            dd.plotLength && { label: 'Length', value: dd.plotLength },
+            dd.plotBreadth && { label: 'Breadth', value: dd.plotBreadth },
+            dd.direction && { label: 'Facing', value: dd.direction },
+            dd.approvalStatus && { label: 'Approval', value: dd.approvalStatus },
+            dd.lpNumber && { label: 'LP Number', value: dd.lpNumber },
+            dd.bankLoanFacility && { label: 'Bank Loan', value: dd.bankLoanFacility },
+          ].filter(Boolean) : [];
+
+          const amenities = isPlot ? [
+            { key: 'kidsPlayArea', label: 'Kids Play Area' },
+            { key: 'waterTap', label: 'Water Tap' },
+            { key: 'undergroundDrainage', label: 'UG Drainage' },
+            { key: 'security', label: 'Security' },
+            { key: 'compoundWall', label: 'Compound Wall' },
+            { key: 'undergroundElectricity', label: 'UG Electricity' },
+            { key: 'readyToConstruction', label: 'Ready to Build' },
+            { key: 'clubHouse', label: 'Club House' },
+            { key: 'swimmingPool', label: 'Swimming Pool' },
+            { key: 'gymArea', label: 'Gym' },
+            { key: 'yogaArea', label: 'Yoga Area' },
+          ].filter(a => dd[a.key] === 'Yes' || dd[a.key] === true) : [
+            fac.water && { key: 'water', label: 'Water', icon: <Droplets size={13} /> },
+            fac.vastu && { key: 'vastu', label: 'Vastu', icon: <Compass size={13} /> },
+            fac.documents && { key: 'documents', label: 'Documents', icon: <FileCheck2 size={13} /> },
+            fac.lift && { key: 'lift', label: 'Lift', icon: <ArrowUpDown size={13} /> },
+          ].filter(Boolean);
+
+          return (
             <motion.div
-              className="sidebar-container"
-              initial={{ opacity: 0, y: 22, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 12, scale: 0.98 }}
-              onClick={(event) => event.stopPropagation()}
+              className="sidebar-overlay"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedProperty(null)}
             >
-              <div className="sidebar-hero-wrapper">
-                <ImageCarousel images={getAllImages(selectedProperty)} altText={selectedProperty.location || 'Property'} />
-              </div>
-
-              <div className="sidebar-content">
-                <div className="sidebar-head">
-                  <span className="section-eyebrow">
-                    <CheckCircle2 size={14} />
-                    {selectedProperty.sourceType} Listing
-                  </span>
-                  <button className="icon-circle-btn" onClick={() => setSelectedProperty(null)}>
-                    <X size={18} />
-                  </button>
+              <motion.div
+                className="sidebar-container"
+                initial={{ opacity: 0, y: 22, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 12, scale: 0.98 }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="sidebar-hero-wrapper">
+                  <ImageCarousel images={getAllImages(sp)} altText={sp.location || 'Property'} />
                 </div>
 
-                <h2 className="sidebar-price-tag">{formatPrice(selectedProperty.price)}</h2>
-                <div className="sidebar-location-row">
-                  <MapPin size={18} />
-                  <span>{selectedProperty.location || 'Location unavailable'}</span>
-                </div>
+                <div className="sidebar-content">
+                  {/* Header */}
+                  <div className="sidebar-head">
+                    <span className="section-eyebrow" style={{ color: sp.isApproved ? 'var(--primary)' : '#eab308', background: sp.isApproved ? 'transparent' : 'rgba(234, 179, 8, 0.1)' }}>
+                      {sp.isApproved ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />} 
+                      {sp.isApproved ? 'Verified Approved Property' : 'Non-Approved Property'}
+                    </span>
+                    <button className="icon-circle-btn" onClick={() => setSelectedProperty(null)}><X size={18} /></button>
+                  </div>
 
-                <p className="property-story">
-                  {selectedProperty.propertyDetails ||
-                    'This listing is now presented inside a clearer detail panel so users can focus on the essentials and move toward inquiry faster.'}
-                </p>
+                  {/* Price + Location */}
+                  <h2 className="sidebar-price-tag">{formatPrice(sp.price)}</h2>
+                  <div className="sidebar-location-row"><MapPin size={18} /><span>{sp.location || 'Location unavailable'}</span></div>
 
-                <div className="detail-grid">
-                  {[
-                    { label: 'Property type', value: selectedProperty.propertyType || 'Not specified', icon: <Building2 size={18} color="var(--accent)" /> },
-                    { label: 'District', value: selectedProperty.district || 'Not specified', icon: <MapPin size={18} color="var(--accent)" /> },
-                    { label: 'Mandal', value: selectedProperty.mandal || 'Not specified', icon: <Grid size={18} color="var(--accent)" /> },
-                    {
-                      label: 'Listing source',
-                      value: selectedProperty.sourceType,
-                      icon: <CheckCircle2 size={18} color="var(--accent)" />
-                    }
-                  ].map((item) => (
-                    <div key={item.label} className="detail-item-card">
-                      {item.icon}
-                      <span className="detail-key">{item.label}</span>
-                      <span className="detail-value">{item.value}</span>
-                    </div>
-                  ))}
-                </div>
+                  {/* Description */}
+                  {sp.propertyDetails && sp.propertyDetails !== 'no details' && (
+                    <p className="property-story">{sp.propertyDetails}</p>
+                  )}
 
-                <div className="sidebar-footer">
-                  <a href="tel:7796356789" className="contact-btn">
-                    <Phone size={18} />
-                    Contact about this property
-                  </a>
-                  <p className="sidebar-note">Call Wealth Associates at +91 77963 56789 for direct assistance.</p>
+                  {/* Core Details Grid */}
+                  <h4 style={{ margin: '1rem 0 0.5rem', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)' }}>Basic Information</h4>
+                  <div className="detail-grid">
+                    {coreDetails.map((item) => (
+                      <div key={item.label} className="detail-item-card">
+                        {item.icon}
+                        <span className="detail-key">{item.label}</span>
+                        <span className="detail-value">{item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* House / Flat Details */}
+                  {houseDetails.length > 0 && (
+                    <>
+                      <h4 style={{ margin: '1rem 0 0.5rem', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)' }}>
+                        <Home size={14} style={{ marginRight: 4 }} /> Property Specifications
+                      </h4>
+                      <div className="detail-grid">
+                        {houseDetails.map((item) => (
+                          <div key={item.label} className="detail-item-card">
+                            <Ruler size={16} color="var(--accent)" />
+                            <span className="detail-key">{item.label}</span>
+                            <span className="detail-value">{item.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Agriculture Land Details */}
+                  {agriDetails.length > 0 && (
+                    <>
+                      <h4 style={{ margin: '1rem 0 0.5rem', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)' }}>
+                        <Trees size={14} style={{ marginRight: 4 }} /> Land Details
+                      </h4>
+                      <div className="detail-grid">
+                        {agriDetails.map((item) => (
+                          <div key={item.label} className="detail-item-card">
+                            <Layers size={16} color="var(--accent)" />
+                            <span className="detail-key">{item.label}</span>
+                            <span className="detail-value">{item.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Plot Layout Details */}
+                  {plotDetails.length > 0 && (
+                    <>
+                      <h4 style={{ margin: '1rem 0 0.5rem', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)' }}>
+                        <Grid size={14} style={{ marginRight: 4 }} /> Plot Details
+                      </h4>
+                      <div className="detail-grid">
+                        {plotDetails.map((item) => (
+                          <div key={item.label} className="detail-item-card">
+                            <Ruler size={16} color="var(--accent)" />
+                            <span className="detail-key">{item.label}</span>
+                            <span className="detail-value">{item.value}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Amenities / Facilities */}
+                  {amenities.length > 0 && (
+                    <>
+                      <h4 style={{ margin: '1rem 0 0.5rem', fontSize: '0.85rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)' }}>Amenities & Facilities</h4>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1rem' }}>
+                        {amenities.map((a) => (
+                          <span key={a.key || a.label} style={{ background: '#e8f5e9', color: '#2e7d32', borderRadius: '20px', padding: '4px 12px', fontSize: '0.8rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            {a.icon ? a.icon : <Check size={13} />} {a.label}
+                          </span>
+                        ))}
+                      </div>
+                    </>
+                  )}
+
+                  {/* Contact Footer */}
+                  <div className="sidebar-footer">
+                    <a href="tel:7796356789" className="contact-btn">
+                      <Phone size={18} />
+                      Call Wealth Associates
+                    </a>
+                    <p className="sidebar-note" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}><PhoneCall size={13} /> +91 77963 56789 &nbsp;|&nbsp; Property ID: {sp._id?.slice(-4).toUpperCase() || 'N/A'}</p>
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
+          );
+        })()}
       </AnimatePresence>
 
       <PostPropertyModal
         isOpen={isPostOpen}
         onClose={() => setIsPostOpen(false)}
         user={currentUser}
-        onPropertyAdded={(property) => setUnapprovedProperties((prev) => [property, ...prev])}
+        onPropertyAdded={(property) => setCommunityProperties((prev) => [property, ...prev])}
       />
     </div>
   );

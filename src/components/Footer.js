@@ -75,11 +75,9 @@ const Footer = () => {
         </div>
 
         <div className="footer-bottom">
-          <span>&copy; {new Date().getFullYear()} RealProperties. Redesigned for stronger user engagement.</span>
-          <div className="footer-bottom-links">
-            <span>Responsive UX</span>
-            <span>Trust-first discovery</span>
-            <span>Same core features</span>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'center', textAlign: 'center' }}>
+            <span>&copy; {new Date().getFullYear()} Real Properties. Powered by Wealth Associates.</span>
+            <span style={{ color: 'var(--text-muted)' }}>Developed by The Kriya IT Solutions</span>
           </div>
         </div>
       </div>

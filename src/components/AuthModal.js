@@ -21,7 +21,8 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
     setLoading(true);
     setError(null);
 
-    const url = isLogin ? 'http://localhost:3000/realproperties/login' : 'http://localhost:3000/realproperties/signup';
+    // Route to production server for Auth
+    const url = isLogin ? 'https://api.wealthassociate.in/realproperties/login' : 'https://api.wealthassociate.in/realproperties/signup';
     const payload = isLogin
       ? { mobile: formData.mobile, password: formData.password }
       : formData;

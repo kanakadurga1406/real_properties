@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Activity, ChevronRight, FileSearch, HardHat, Handshake, ShieldCheck, Sparkles, Users, WalletCards } from 'lucide-react';
+import { Activity, ChevronRight, FileSearch, HardHat, Handshake, MousePointerClick, ShieldCheck, Sparkles, Users, WalletCards } from 'lucide-react';
 
 const coreFeatures = [
   {
@@ -74,9 +74,11 @@ const FeaturesSection = () => {
           {coreFeatures.map((feature) => (
             <motion.div
               key={feature.id}
-              layout
               className={`v2-feature-module ${expandedId === feature.id ? 'active' : ''}`}
               onClick={() => setExpandedId(feature.id)}
+              whileHover={{ y: -6, scale: 1.02 }}
+              whileTap={{ scale: 0.97 }}
+              transition={{ type: 'spring', stiffness: 340, damping: 24 }}
             >
               <div className="module-header">
                 <div className="module-icon">{feature.icon}</div>
@@ -84,26 +86,63 @@ const FeaturesSection = () => {
                   <span className="module-tag">{feature.tag}</span>
                   <h3 className="module-title">{feature.title}</h3>
                 </div>
-                <ChevronRight className="module-arrow" size={20} />
+                <motion.span
+                  animate={{ rotate: expandedId === feature.id ? 90 : 0 }}
+                  transition={{ type: 'spring', stiffness: 300, damping: 22 }}
+                  style={{ display: 'flex', alignItems: 'center' }}
+                >
+                  <ChevronRight className="module-arrow" size={20} />
+                </motion.span>
               </div>
 
-              <AnimatePresence>
-                {expandedId === feature.id && (
+              <AnimatePresence initial={false} mode="wait">
+                {expandedId === feature.id ? (
                   <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
+                    key="expanded"
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.28, ease: [0.25, 0.46, 0.45, 0.94] }}
                     className="module-expansion"
                   >
                     <p className="module-desc">{feature.desc}</p>
-                    <div className="v2-detail-grid">
+                    <motion.div
+                      className="v2-detail-grid"
+                      initial="hidden"
+                      animate="visible"
+                      variants={{
+                        hidden: {},
+                        visible: { transition: { staggerChildren: 0.07, delayChildren: 0.1 } }
+                      }}
+                    >
                       {feature.details.map((detail) => (
-                        <div key={detail} className="v2-detail-pill">
+                        <motion.div
+                          key={detail}
+                          className="v2-detail-pill"
+                          variants={{
+                            hidden: { opacity: 0, scale: 0.85, y: 6 },
+                            visible: { opacity: 1, scale: 1, y: 0, transition: { type: 'spring', stiffness: 280, damping: 20 } }
+                          }}
+                        >
                           <Users size={15} className="pill-icon" />
                           <span className="pill-label">{detail}</span>
-                        </div>
+                        </motion.div>
                       ))}
-                    </div>
+                    </motion.div>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="hint"
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.85 }}
+                    transition={{ duration: 0.22, ease: 'easeOut' }}
+                    className="module-click-hint"
+                  >
+                    <span className="hint-icon-wrap">
+                      <MousePointerClick size={22} className="hint-icon" />
+                    </span>
+                    <span className="hint-label">Click to view details</span>
                   </motion.div>
                 )}
               </AnimatePresence>
