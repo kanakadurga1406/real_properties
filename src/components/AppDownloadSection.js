@@ -7,16 +7,13 @@ const AppDownloadSection = () => {
       <div className="section-container">
         <div className="app-download-card">
           <div className="app-download-copy">
-            <span className="section-eyebrow">
-              <Smartphone size={14} />
-              Mobile Ready
-            </span>
+
             <h2 className="v2-title-xl" style={{ marginTop: '1rem' }}>
-              Continue the same polished experience on the go.
+              Manage your property journey on any device.
             </h2>
             <p className="v2-p-lg" style={{ marginTop: '1rem' }}>
-              The redesign now introduces a more product-led web journey while still connecting users to the existing
-              mobile ecosystem for ongoing discovery, inquiries, and property management.
+              Download the Real Properties app to receive instant alerts on new listings, track your 
+              inquiries, and manage your property portfolio with ease from anywhere in the world.
             </p>
 
             <div className="app-download-actions">
@@ -50,25 +47,22 @@ const AppDownloadSection = () => {
 
           <div className="app-download-preview">
             <div className="preview-card">
-              <span className="section-eyebrow">
-                <Sparkles size={14} />
-                Better Retention
-              </span>
-              <h4 style={{ marginTop: '1rem' }}>One visual system across web and mobile</h4>
+
+              <h4 style={{ marginTop: '1rem' }}>Stay connected to the market 24/7</h4>
               <p>
-                Consistency helps users trust the brand faster, continue their journey on any device, and return with
-                less confusion.
+                Receive real-time updates on property price changes, new launches, and exclusive 
+                investment opportunities directly on your phone.
               </p>
             </div>
 
             <div className="preview-stat-grid">
               <div className="preview-card">
-                <h4>Responsive</h4>
-                <p>Optimized layouts for phones, tablets, laptops, and large screens.</p>
+                <h4>Real-time Alerts</h4>
+                <p>Instant notifications for price drops and verified buyer interests.</p>
               </div>
               <div className="preview-card">
-                <h4>Actionable</h4>
-                <p>Built to move users from browsing into inquiry and listing submission.</p>
+                <h4>Direct Actions</h4>
+                <p>Directly call owners or schedule site visits with a single tap.</p>
               </div>
             </div>
           </div>

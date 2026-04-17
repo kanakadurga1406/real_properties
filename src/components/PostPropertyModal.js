@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { DollarSign, Home, Image as ImageIcon, Loader2, MapPin, Ruler, Text, X } from 'lucide-react';
+import CONFIG from '../config';
 
-const PostPropertyModal = ({ isOpen, onClose, user, onPropertyAdded }) => {
+const PostPropertyModal = ({ isOpen, onClose, user, onPropertyAdded, editData = null }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [formData, setFormData] = useState({
@@ -15,6 +16,34 @@ const PostPropertyModal = ({ isOpen, onClose, user, onPropertyAdded }) => {
     bathrooms: '',
     sqft: ''
   });
+
+  // Prefill if in edit mode
+  useEffect(() => {
+    if (editData && isOpen) {
+      setFormData({
+        propertyType: editData.propertyType || 'Sale',
+        location: editData.location || '',
+        price: editData.price || '',
+        photo: null, // Don't prefill file input, keep existing unless changed
+        propertyDetails: editData.propertyDetails || '',
+        bedrooms: editData.dynamicData?.bedrooms || '',
+        bathrooms: editData.dynamicData?.bathrooms || '',
+        sqft: editData.dynamicData?.sqft || ''
+      });
+    } else if (!editData && isOpen) {
+      // Reset for new property
+      setFormData({
+        propertyType: 'Sale',
+        location: '',
+        price: '',
+        photo: null,
+        propertyDetails: '',
+        bedrooms: '',
+        bathrooms: '',
+        sqft: ''
+      });
+    }
+  }, [editData, isOpen]);
 
   if (!isOpen) {
     return null;
@@ -32,7 +61,7 @@ const PostPropertyModal = ({ isOpen, onClose, user, onPropertyAdded }) => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!user) {
-      setError('You need to sign in before posting a property.');
+      setError('You need to sign in first.');
       return;
     }
 
@@ -44,9 +73,18 @@ const PostPropertyModal = ({ isOpen, onClose, user, onPropertyAdded }) => {
     payload.append('location', formData.location);
     if (formData.price) payload.append('price', formData.price);
     if (formData.propertyDetails) payload.append('propertyDetails', formData.propertyDetails);
-    payload.append('PostedBy', user.id || 'realproperties_user');
-    payload.append('fullName', user.name);
-    payload.append('mobile', user.mobile);
+    
+    // Maintain owner info
+    if (editData) {
+      payload.append('PostedBy', editData.PostedBy);
+      payload.append('fullName', editData.fullName);
+      payload.append('mobile', editData.mobile);
+    } else {
+      payload.append('PostedBy', user.id || 'realproperties_user');
+      payload.append('fullName', user.name);
+      payload.append('mobile', user.mobile);
+    }
+    
     payload.append('PostedUserType', 'User');
     payload.append(
       'dynamicData',
@@ -62,29 +100,26 @@ const PostPropertyModal = ({ isOpen, onClose, user, onPropertyAdded }) => {
     }
 
     try {
-      // Point to production API
-      const response = await fetch('https://api.wealthassociate.in/realproperties/property/add', {
-        method: 'POST',
+      const url = editData 
+        ? `${CONFIG.API_BASE_URL}/realproperties/property/update/${editData._id}`
+        : `${CONFIG.API_BASE_URL}/realproperties/property/add`;
+      
+      const method = editData ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         body: payload
       });
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to post property');
+        throw new Error(data.message || 'Action failed');
       }
 
+      // If update, we might want to refresh the list elsewhere. 
+      // For now, let's treat it as a success call.
       onPropertyAdded(data.property);
       onClose();
-      setFormData({
-        propertyType: 'Sale',
-        location: '',
-        price: '',
-        photo: null,
-        propertyDetails: '',
-        bedrooms: '',
-        bathrooms: '',
-        sqft: ''
-      });
     } catch (err) {
       setError(err.message);
     } finally {
@@ -120,14 +155,12 @@ const PostPropertyModal = ({ isOpen, onClose, user, onPropertyAdded }) => {
             </button>
 
             <div className="modal-header">
-              <span className="section-eyebrow">
-                <Home size={14} />
-                Property Submission
-              </span>
-              <h2 className="modal-title">Post a property</h2>
+
+              <h2 className="modal-title">{editData ? 'Update your property' : 'Post a property'}</h2>
               <p className="modal-copy">
-                Keep the same feature, but make the workflow feel cleaner and more trustworthy for owners submitting new
-                inventory.
+                {editData 
+                  ? 'Update the details of your listing to attract more interested buyers or tenants.' 
+                  : 'Submit your property details to list it on our professional architectural gallery.'}
               </p>
             </div>
 
@@ -227,7 +260,9 @@ const PostPropertyModal = ({ isOpen, onClose, user, onPropertyAdded }) => {
               </div>
 
               <div className="input-shell">
-                <label htmlFor="property-image">Property image</label>
+                <label htmlFor="property-image">
+                  {editData ? 'New property image (optional)' : 'Property image'}
+                </label>
                 <div className="input-control">
                   <ImageIcon size={18} color="var(--accent)" />
                   <input id="property-image" type="file" name="photo" accept="image/*" onChange={handleChange} />
@@ -249,7 +284,7 @@ const PostPropertyModal = ({ isOpen, onClose, user, onPropertyAdded }) => {
               </div>
 
               <button className="btn-primary" type="submit" disabled={loading} style={{ width: '100%' }}>
-                {loading ? <Loader2 className="spinner" size={18} /> : 'Submit Property'}
+                {loading ? <Loader2 className="spinner" size={18} /> : editData ? 'Save Changes' : 'Submit Property'}
               </button>
             </form>
           </motion.div>

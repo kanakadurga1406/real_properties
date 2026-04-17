@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Loader2, Lock, Phone, ShieldCheck, User, X } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Lock, Phone, ShieldCheck, User, X } from 'lucide-react';
+import CONFIG from '../config';
 
 const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ name: '', mobile: '', password: '' });
 
   if (!isOpen) {
@@ -21,8 +23,10 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
     setLoading(true);
     setError(null);
 
-    // Route to production server for Auth
-    const url = isLogin ? 'https://api.wealthassociate.in/realproperties/login' : 'https://api.wealthassociate.in/realproperties/signup';
+    // Route to server for Auth
+    const url = isLogin 
+      ? `${CONFIG.API_BASE_URL}/realproperties/login` 
+      : `${CONFIG.API_BASE_URL}/realproperties/signup`;
     const payload = isLogin
       ? { mobile: formData.mobile, password: formData.password }
       : formData;
@@ -131,12 +135,22 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
                   <input
                     id="auth-password"
                     name="password"
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     placeholder="Enter your password"
                     value={formData.password}
                     onChange={handleChange}
                     required
+                    style={{ flex: 1 }}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="icon-text-btn"
+                    style={{ padding: '0 4px', color: 'var(--text-soft)', cursor: 'pointer', background: 'none', border: 'none' }}
+                    title={showPassword ? 'Hide password' : 'Show password'}
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
                 </div>
               </div>
 
@@ -145,16 +159,16 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
               </button>
             </form>
 
-            <div style={{ marginTop: '1rem', color: 'var(--text-soft)', textAlign: 'center' }}>
+            <div style={{ marginTop: '1.5rem', color: 'var(--text-soft)', textAlign: 'center', fontSize: '0.92rem' }}>
               {isLogin ? 'New here?' : 'Already have an account?'}{' '}
               <button
                 type="button"
+                className="text-link-btn"
                 onClick={() => {
                   setIsLogin((prev) => !prev);
                   setError(null);
                   setFormData({ name: '', mobile: '', password: '' });
                 }}
-                style={{ color: 'var(--accent)', fontWeight: 700 }}
               >
                 {isLogin ? 'Create one' : 'Sign in'}
               </button>

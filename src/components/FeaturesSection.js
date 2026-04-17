@@ -5,47 +5,47 @@ import { Activity, ChevronRight, FileSearch, HardHat, Handshake, MousePointerCli
 const coreFeatures = [
   {
     id: 'trust-stack',
-    title: 'Trust Stack',
+    title: 'Investment Security',
     icon: <ShieldCheck size={22} />,
     tag: 'Buyer Confidence',
-    desc: 'Every important journey now feels guided: clear value proposition, direct search, visible proof points, and faster inquiry paths.',
-    details: ['Verified inventory framing', 'Safer contact actions', 'Cleaner readability', 'Less visual clutter']
+    desc: 'We prioritize legal transparency and title clarity in every project showcased, ensuring your investment is protected.',
+    details: ['Legal Vetting', 'Physical Verification', 'Clear Documentation', 'Title Guarantee']
   },
   {
     id: 'listing-flow',
-    title: 'Listing Flow',
+    title: 'Sellers Platform',
     icon: <WalletCards size={22} />,
     tag: 'Owner Engagement',
-    desc: 'Property owners can still log in, post listings, and manage their submissions, but with a more premium, confidence-building experience.',
-    details: ['Simplified post modal', 'Responsive listing cards', 'My properties dashboard', 'Persistent account actions']
+    desc: 'List your property with professional presentation and reach a network of high-intent buyers instantly through our verified portal.',
+    details: ['Instant Posting', 'Lead Tracking', 'Dashboard Analytics', 'Listing Optimization']
   },
   {
     id: 'market-support',
-    title: 'Market Support',
+    title: 'Expert Guidance',
     icon: <HardHat size={22} />,
     tag: 'Extended Services',
-    desc: 'The redesigned storytelling helps users understand the broader value: expert support, legal clarity, and data-backed investment decisions.',
-    details: ['Expert panel narrative', 'True property benefits', 'Service ecosystem', 'Mobile app discovery']
+    desc: 'Benefit from our decade of experience in the South Indian real estate growth corridors with strategic advice and personalized support.',
+    details: ['Strategic Advice', 'Site Visit Support', 'Legal Assistance', 'Market Analysis']
   }
 ];
 
 const trueBenefits = [
   {
-    title: 'True Sale',
-    tag: 'Transparent transactions',
-    desc: 'Guide buyers toward inventory with clearer pricing visibility and stronger contact intent.',
+    title: 'Secure Transactions',
+    tag: 'Transparent process',
+    desc: 'Guide buyers toward inventory with verified pricing and fully vetted legal documentation.',
     icon: <Handshake size={28} />
   },
   {
-    title: 'True Analysis',
+    title: 'Market Analysis',
     tag: 'Sharper decision support',
-    desc: 'Highlight market reasoning and opportunity value instead of relying only on raw listing data.',
+    desc: 'Access expert market reasoning and property value insights to ensure a sound investment.',
     icon: <Activity size={28} />
   },
   {
-    title: 'True Property',
-    tag: 'Confidence in every step',
-    desc: 'Frame legal and verification support as part of the product experience, not an afterthought.',
+    title: 'Legal Confidence',
+    tag: 'Security in every step',
+    desc: 'Our legal team frames every transaction with verification support as a core product experience.',
     icon: <FileSearch size={28} />
   }
 ];
@@ -59,14 +59,14 @@ const FeaturesSection = () => {
         <div className="v2-header-stack">
           <span className="section-eyebrow">
             <Sparkles size={14} />
-            Experience Upgrade
+            Services Overview
           </span>
           <h2 className="v2-title-xl">
-            Professional UI/UX built for trust, clarity, and higher engagement.
+            Comprehensive real estate solutions for buyers and owners.
           </h2>
           <p className="v2-p-lg section-subcopy">
-            The new interface keeps the same core capabilities while improving visual polish, onboarding clarity,
-            content hierarchy, and responsive behavior on every screen size.
+            From discovering your dream plot to managing your property portfolio, our platform provides 
+            the tools and insights you need for a secure and transparent transaction.
           </p>
         </div>
 
@@ -152,16 +152,13 @@ const FeaturesSection = () => {
 
         <div className="v2-guarantee-block">
           <div className="guarantee-header-v2">
-            <span className="section-eyebrow">
-              <ShieldCheck size={14} />
-              Value Narrative
-            </span>
+
             <h3 className="v2-title-md">
-              The <span className="text-gradient">True</span> advantage is now easier to understand.
+              The Real Properties <span className="text-gradient">Advantage</span>.
             </h3>
             <p className="v2-p-lg" style={{ marginTop: '1rem' }}>
-              Better storytelling increases confidence. Users can immediately understand what makes the platform useful,
-              not just what it contains.
+              We bring decades of field expertise directly to your screen. Users can immediately 
+              understand what makes each property a unique opportunity, not just a set of coordinates.
             </p>
           </div>
 

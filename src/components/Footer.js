@@ -15,17 +15,12 @@ const Footer = () => {
             </div>
 
             <p className="footer-brand-copy">
-              A redesigned real-estate experience focused on clarity, trust, and responsive discovery while preserving
-              your existing listing, login, post-property, and direct-contact capabilities.
+              Direct access to premium plots, residential homes, and commercial opportunities across South India. 
+              We bridge the gap between owners and buyers with trust and transparency.
             </p>
 
-            <div className="footer-socials">
-              <a href="https://wealthassociates.com" aria-label="Website">
-                <Globe size={18} />
-              </a>
-              <a href="mailto:wealthassociates.com@gmail.com" aria-label="Email">
-                <AtSign size={18} />
-              </a>
+            <div className="footer-socials" style={{ display: 'none' }}>
+              {/* Social icons removed per user request */}
             </div>
           </div>
 
@@ -76,8 +71,8 @@ const Footer = () => {
 
         <div className="footer-bottom">
           <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', alignItems: 'center', textAlign: 'center' }}>
-            <span>&copy; {new Date().getFullYear()} Real Properties. Powered by Wealth Associates.</span>
-            <span style={{ color: 'var(--text-muted)' }}>Developed by The Kriya IT Solutions</span>
+            <span>&copy; {new Date().getFullYear()} Real Properties. Powered by <a href="https://www.wealthassociate.in/" target="_blank" rel="noreferrer" style={{ color: 'inherit', fontWeight: 'bold', textDecoration: 'none' }}>Wealth Associates</a>.</span>
+            <span style={{ color: 'var(--text-muted)' }}>Developed by <a href="https://kriyaitsolutions.com/" target="_blank" rel="noreferrer" style={{ color: 'inherit', fontWeight: '800', textDecoration: 'none' }}>Kriya IT Solutions</a></span>
           </div>
         </div>
       </div>

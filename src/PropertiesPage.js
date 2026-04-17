@@ -16,17 +16,20 @@ import {
   Grid,
   Home,
   Layers,
+  Lock,
   Loader2,
   MapPin,
   Phone,
   PhoneCall,
   Ruler,
   Search,
+  Sparkles,
   Tag,
   Trees,
   User,
   X
 } from 'lucide-react';
+import CONFIG from './config';
 import PostPropertyModal from './components/PostPropertyModal';
 import './App.css';
 
@@ -94,9 +97,7 @@ const ImageCarousel = ({ images, altText }) => {
 };
 
 function PropertiesPage({ heroSearchTerm = '' }) {
-  // approvedProperties = ALL approved props (includes Wealth Associate admin-posted + agent-posted approved)
   const [approvedProperties, setApprovedProperties] = useState([]);
-  // communityProperties = posted via real_properties website by public users
   const [communityProperties, setCommunityProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -105,8 +106,17 @@ function PropertiesPage({ heroSearchTerm = '' }) {
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [isPostOpen, setIsPostOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
+  const [subscription, setSubscription] = useState(null);
   const [visibleCount, setVisibleCount] = useState(6);
-  const [activeCategory, setActiveCategory] = useState('approved'); // Toggle for Approved vs Community
+  const [activeCategory, setActiveCategory] = useState('approved');
+
+  const fetchSubStatus = async (userId) => {
+    try {
+      const res = await fetch(`${CONFIG.API_BASE_URL}/realproperties/subscription/status/${userId}`);
+      const data = await res.json();
+      setSubscription(data.hasSubscription ? data.subscription : null);
+    } catch { /* ignore */ }
+  };
 
   // Lock body scroll and update dynamic SEO when property detail panel is open
   useEffect(() => {
@@ -132,7 +142,7 @@ function PropertiesPage({ heroSearchTerm = '' }) {
       const type = selectedProperty.propertyType || 'Real Estate';
       const priceText = selectedProperty.price ? `₹${Number(selectedProperty.price).toLocaleString('en-IN')}` : 'Contact for Price';
       const title = `${type} in ${location} - ${priceText} | Real Properties`;
-      const desc = `Check out this verified ${type.toLowerCase()} located in ${location}. Priced at ${priceText}. View details, layout, and contact Wealth Associates to secure this listing.`;
+      const desc = `Check out this verified ${type.toLowerCase()} located in ${location}. Priced at ${priceText}. View details, layout, and contact Real Properties to secure this listing.`;
       const imageUrl = selectedProperty.photo || selectedProperty.newImageUrls || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&h=630&fit=crop';
       const propertyUrl = window.location.href;
 
@@ -171,7 +181,7 @@ function PropertiesPage({ heroSearchTerm = '' }) {
           "availability": "https://schema.org/InStock",
           "seller": {
             "@type": "RealEstateAgent",
-            "name": "Wealth Associates"
+            "name": "Real Properties"
           }
         }
       };
@@ -181,7 +191,7 @@ function PropertiesPage({ heroSearchTerm = '' }) {
       document.body.classList.remove('modal-open');
       
       // Reset Default SEO
-      const defTitle = "Real Properties | 100% Approved Plots, Villas & Flats | Wealth Associates";
+      const defTitle = "Real Properties | 100% Approved Plots, Villas & Flats | Real Properties";
       const defDesc = "Browse 100% legally approved residential and commercial properties across Andhra Pradesh and Telangana. Find plots, villas, flats & land for sale.";
       const defImg = "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&h=630&fit=crop";
       
@@ -201,34 +211,46 @@ function PropertiesPage({ heroSearchTerm = '' }) {
   }, [selectedProperty]);
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('realprop_user');
-    if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
+    const stored = localStorage.getItem('realprop_user');
+    if (stored) {
+      const u = JSON.parse(stored);
+      setCurrentUser(u);
+      fetchSubStatus(u.id);
     }
 
-    const handleOpenPost = () => setIsPostOpen(true);
     const handleAuthUpdate = () => {
       const nextUser = localStorage.getItem('realprop_user');
-      setCurrentUser(nextUser ? JSON.parse(nextUser) : null);
+      if (nextUser) {
+        const u = JSON.parse(nextUser);
+        setCurrentUser(u);
+        fetchSubStatus(u.id);
+      } else {
+        setCurrentUser(null);
+        setSubscription(null);
+      }
+    };
+    const handleSubChange = () => {
+      const u = localStorage.getItem('realprop_user');
+      if (u) fetchSubStatus(JSON.parse(u).id);
     };
 
-    window.addEventListener('openPostProperty', handleOpenPost);
     window.addEventListener('authChange', handleAuthUpdate);
+    window.addEventListener('subscriptionChange', handleSubChange);
 
     return () => {
-      window.removeEventListener('openPostProperty', handleOpenPost);
       window.removeEventListener('authChange', handleAuthUpdate);
+      window.removeEventListener('subscriptionChange', handleSubChange);
     };
   }, []);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // ------ 1. Approved / Wealth Associate properties ------
+        // ------ 1. Approved / Real Properties properties ------
         let approved = [];
         try {
           const approvedResponse = await fetch(
-            'https://api.wealthassociate.in/properties/getApproveProperty'
+            `${CONFIG.API_BASE_URL}/properties/getApproveProperty`
           );
           if (approvedResponse.ok) {
             const approvedData = await approvedResponse.json();
@@ -248,7 +270,7 @@ function PropertiesPage({ heroSearchTerm = '' }) {
         let community = [];
         try {
           const communityResponse = await fetch(
-            'https://api.wealthassociate.in/realproperties/property/get'
+            `${CONFIG.API_BASE_URL}/realproperties/property/get`
           );
           if (communityResponse.ok) {
             const communityData = await communityResponse.json();
@@ -336,7 +358,7 @@ function PropertiesPage({ heroSearchTerm = '' }) {
   };
 
   const allProperties = useMemo(() => {
-    // Merge: approved (from WealthAssociate backend) + community (from real_properties website)
+    // Merge: approved (from Real Properties backend) + community (from real_properties website)
     return [
       ...approvedProperties,
       ...communityProperties
@@ -380,10 +402,10 @@ function PropertiesPage({ heroSearchTerm = '' }) {
           <ImageCarousel images={propertyImages} altText={property.location || 'Property'} />
           <div className="zillow-badge" style={{ 
             background: property.isApproved ? 'var(--primary)' : '#eab308', 
-            color: property.isApproved ? 'var(--primary-inverse)' : '#1f2937',
+            color: '#ffffff',
             border: 'none', top: '10px', left: '10px'
           }}>
-            {property.isApproved ? 'Approved' : 'Non-Approved'}
+            {property.isApproved ? 'Approved' : 'unverified'}
           </div>
           <span className="zillow-image-count">{propertyImages.length} photo{propertyImages.length !== 1 ? 's' : ''}</span>
         </div>
@@ -417,7 +439,7 @@ function PropertiesPage({ heroSearchTerm = '' }) {
 
           <div className="zillow-card-footer">
             <span className="zillow-agent-tag">
-              {property.fullName ? `Posted by ${property.fullName}` : 'Wealth Associates'}
+              {property.fullName ? `Posted by ${property.fullName}` : 'Real Properties'}
             </span>
             <ArrowRight size={18} />
           </div>
@@ -523,14 +545,14 @@ function PropertiesPage({ heroSearchTerm = '' }) {
                   color: activeCategory === 'community' ? '#1f2937' : 'var(--text-soft)'
                 }}
               >
-                Non-Approved Properties
+                Unverified Properties
               </button>
             </div>
             <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.35rem' }}>
               {activeCategory === 'approved' ? 'Verified Official Inventory' : 'Community Postings'}
             </h3>
             <p className="results-meta">
-              {activeCategory === 'approved' ? 'These properties have been legally vetted and approved by Wealth Associates.' : 'These properties were submitted by users and agents and are pending official verification.'}
+              {activeCategory === 'approved' ? 'These properties have been legally vetted and approved by Real Properties.' : 'These properties were submitted by users and agents and are pending official verification.'}
             </p>
           </div>
           <div className="results-count" style={{ alignSelf: 'flex-end' }}>
@@ -663,7 +685,7 @@ function PropertiesPage({ heroSearchTerm = '' }) {
                   <div className="sidebar-head">
                     <span className="section-eyebrow" style={{ color: sp.isApproved ? 'var(--primary)' : '#eab308', background: sp.isApproved ? 'transparent' : 'rgba(234, 179, 8, 0.1)' }}>
                       {sp.isApproved ? <CheckCircle2 size={14} /> : <AlertCircle size={14} />} 
-                      {sp.isApproved ? 'Verified Approved Property' : 'Non-Approved Property'}
+                      {sp.isApproved ? 'Verified Approved Property' : 'unverified Property'}
                     </span>
                     <button className="icon-circle-btn" onClick={() => setSelectedProperty(null)}><X size={18} /></button>
                   </div>
@@ -757,13 +779,41 @@ function PropertiesPage({ heroSearchTerm = '' }) {
                     </>
                   )}
 
-                  {/* Contact Footer */}
+                  {/* Contact Footer — gated behind subscription */}
                   <div className="sidebar-footer">
-                    <a href="tel:7796356789" className="contact-btn">
-                      <Phone size={18} />
-                      Call Wealth Associates
-                    </a>
-                    <p className="sidebar-note" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}><PhoneCall size={13} /> +91 77963 56789 &nbsp;|&nbsp; Property ID: {sp._id?.slice(-4).toUpperCase() || 'N/A'}</p>
+                    {subscription ? (
+                      // ✅ Subscribed: show full call button
+                      <>
+                        <a href="tel:7796356789" className="contact-btn">
+                          <Phone size={18} />
+                          Call Real Properties
+                        </a>
+                        <p className="sidebar-note" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                          <PhoneCall size={13} /> +91 77963 56789 &nbsp;|&nbsp; Property ID: {sp._id?.slice(-4).toUpperCase() || 'N/A'}
+                        </p>
+                      </>
+                    ) : (
+                      // 🔒 Not subscribed: subscription gate
+                      <div className="prop-gate">
+                        <div className="prop-gate-lock">
+                          <Lock size={22} />
+                        </div>
+                        <div className="prop-gate-text">
+                          <strong>Premium Members Only</strong>
+                          <span>Subscribe to view contact details &amp; call the seller directly.</span>
+                        </div>
+                        <button
+                          className="btn-primary prop-gate-btn"
+                          onClick={() => {
+                            setSelectedProperty(null);
+                            window.dispatchEvent(new CustomEvent('openSubscription'));
+                          }}
+                        >
+                          <Sparkles size={15} />
+                          Subscribe — ₹3,650/yr
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </motion.div>

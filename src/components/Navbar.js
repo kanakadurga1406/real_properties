@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Building2, LogOut, Menu, Moon, Plus, Sun, User, X } from 'lucide-react';
-import AuthModal from './AuthModal';
 
 const navLinks = [
   { name: 'Home', id: 'home' },
@@ -11,13 +10,12 @@ const navLinks = [
   { name: 'Contact', id: 'contact' }
 ];
 
-const Navbar = ({ onExplore }) => {
+const Navbar = ({ onExplore, hidePostBtn = false }) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('home');
   const [theme, setTheme] = useState('light');
   const [user, setUser] = useState(null);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('app-theme') || 'light';
@@ -79,7 +77,8 @@ const Navbar = ({ onExplore }) => {
     window.dispatchEvent(new CustomEvent('switchView', { detail: 'home' }));
   };
 
-  const closeAndOpenPost = () => {
+  // Fires openPostProperty event — LandingPage handles the auth + subscription check
+  const openPostFlow = () => {
     setMobileMenuOpen(false);
     window.dispatchEvent(new CustomEvent('openPostProperty'));
   };
@@ -120,10 +119,12 @@ const Navbar = ({ onExplore }) => {
 
             {user ? (
               <>
-                <button onClick={closeAndOpenPost} className="btn-primary desktop-only" style={{ paddingInline: '1.1rem' }}>
-                  <Plus size={16} />
-                  Post Property
-                </button>
+                {!hidePostBtn && (
+                  <button onClick={openPostFlow} className="btn-primary desktop-only" style={{ paddingInline: '1.1rem' }}>
+                    <Plus size={16} />
+                    Post Property
+                  </button>
+                )}
                 <div
                   className="account-chip desktop-only"
                   onClick={() => window.dispatchEvent(new CustomEvent('switchView', { detail: 'my_properties' }))}
@@ -138,7 +139,10 @@ const Navbar = ({ onExplore }) => {
                 </button>
               </>
             ) : (
-              <button onClick={() => setIsAuthOpen(true)} className="btn-primary desktop-only">
+              <button
+                onClick={() => window.dispatchEvent(new CustomEvent('openAuth'))}
+                className="btn-primary desktop-only"
+              >
                 Sign In
               </button>
             )}
@@ -169,10 +173,12 @@ const Navbar = ({ onExplore }) => {
             <div style={{ display: 'grid', gap: '0.7rem', marginTop: '1rem' }}>
               {user ? (
                 <>
-                  <button className="btn-primary" onClick={closeAndOpenPost}>
-                    <Plus size={16} />
-                    Post Property
-                  </button>
+                  {!hidePostBtn && (
+                    <button className="btn-primary" onClick={openPostFlow}>
+                      <Plus size={16} />
+                      Post Property
+                    </button>
+                  )}
                   <button
                     className="btn-outline"
                     onClick={() => {
@@ -193,7 +199,7 @@ const Navbar = ({ onExplore }) => {
                   className="btn-primary"
                   onClick={() => {
                     setMobileMenuOpen(false);
-                    setIsAuthOpen(true);
+                    window.dispatchEvent(new CustomEvent('openAuth'));
                   }}
                 >
                   Sign In
@@ -208,16 +214,6 @@ const Navbar = ({ onExplore }) => {
           </motion.div>
         )}
       </AnimatePresence>
-
-      <AuthModal
-        isOpen={isAuthOpen}
-        onClose={() => setIsAuthOpen(false)}
-        onLoginSuccess={(userData) => {
-          setUser(userData);
-          setIsAuthOpen(false);
-          window.dispatchEvent(new CustomEvent('authChange'));
-        }}
-      />
     </>
   );
 };

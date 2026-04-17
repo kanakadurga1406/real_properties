@@ -1,7 +1,10 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowLeft, Loader2, MapPin, Plus, Tag } from 'lucide-react';
+import { ArrowLeft, BadgeCheck, Calendar, Loader2, MapPin, Pencil, Plus, Trash2 } from 'lucide-react';
 import Navbar from './components/Navbar';
+import PostPropertyModal from './components/PostPropertyModal';
+import SubscriptionModal from './components/SubscriptionModal';
+import CONFIG from './config';
 import './App.css';
 
 const fallbackImage = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80';
@@ -51,43 +54,94 @@ export default function MyPropertiesPage() {
   const [currentUser, setCurrentUser] = useState(null);
   const [myProperties, setMyProperties] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [subscription, setSubscription] = useState(null);
+
+  // Modal states
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingProperty, setEditingProperty] = useState(null);
+  const [isSubModalOpen, setIsSubModalOpen] = useState(false);
+
+  const fetchSubStatus = async (userId) => {
+    try {
+      const res = await fetch(`${CONFIG.API_BASE_URL}/realproperties/subscription/status/${userId}`);
+      const data = await res.json();
+      setSubscription(data.hasSubscription ? data.subscription : null);
+    } catch {
+      // ignore
+    }
+  };
 
   useEffect(() => {
     const storedUser = localStorage.getItem('realprop_user');
     if (storedUser) {
-      setCurrentUser(JSON.parse(storedUser));
+      const u = JSON.parse(storedUser);
+      setCurrentUser(u);
+      fetchSubStatus(u.id);
     } else {
       setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    const fetchProps = async () => {
-      try {
-        // Use production API for My Properties fetch
-        const response = await fetch('https://api.wealthassociate.in/realproperties/property/get');
-        if (!response.ok) {
-          throw new Error('Unable to fetch your properties');
-        }
-
-        const data = await response.json();
-        const filtered = data.filter((property) => {
-          return property.mobile === currentUser.mobile || property.PostedBy === currentUser.id;
-        });
-
-        filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        setMyProperties(filtered);
-      } catch (err) {
-        console.error('Failed to fetch my properties', err);
-      } finally {
-        setLoading(false);
+  const fetchProps = async () => {
+    if (!currentUser) return;
+    try {
+      const response = await fetch(`${CONFIG.API_BASE_URL}/realproperties/property/get`);
+      if (!response.ok) {
+        throw new Error('Unable to fetch your properties');
       }
-    };
 
-    if (currentUser) {
-      fetchProps();
+      const data = await response.json();
+      const filtered = data.filter((property) => {
+        return property.mobile === currentUser.mobile || property.PostedBy === currentUser.id;
+      });
+
+      filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setMyProperties(filtered);
+    } catch (err) {
+      console.error('Failed to fetch my properties', err);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  useEffect(() => {
+    fetchProps();
   }, [currentUser]);
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this property listing? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${CONFIG.API_BASE_URL}/realproperties/property/delete/${id}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        setMyProperties((prev) => prev.filter((p) => p._id !== id));
+      } else {
+        alert('Failed to delete property. Please try again.');
+      }
+    } catch (err) {
+      console.error('Delete error:', err);
+      alert('A network error occurred.');
+    }
+  };
+
+  const handleEdit = (property) => {
+    setEditingProperty(property);
+    setIsModalOpen(true);
+  };
+
+  const handleOpenAdd = () => {
+    if (!subscription) {
+      setIsSubModalOpen(true);
+      return;
+    }
+    setEditingProperty(null);
+    setIsModalOpen(true);
+  };
 
   const metrics = useMemo(() => {
     return [
@@ -128,7 +182,7 @@ export default function MyPropertiesPage() {
 
   return (
     <div className="landing-container">
-      <Navbar />
+      <Navbar hidePostBtn={true} />
 
       <div className="my-properties-page">
         <div className="section-container">
@@ -138,24 +192,19 @@ export default function MyPropertiesPage() {
               onClick={() => window.dispatchEvent(new CustomEvent('switchView', { detail: 'home' }))}
             >
               <ArrowLeft size={18} />
-              Back to homepage
+              Return to Catalog
             </button>
 
             <div className="my-properties-header">
               <div>
-                <span className="section-eyebrow">
-                  <Tag size={14} />
-                  Owner Dashboard
-                </span>
                 <h1 className="my-properties-title">My posted properties</h1>
                 <p className="v2-p-lg" style={{ marginTop: '0.85rem' }}>
-                  A cleaner management view for the same feature set, giving owners a more professional overview of
-                  their submissions.
+                  Manage your listings, update details, or remove properties that are no longer available.
                 </p>
               </div>
 
               {currentUser && (
-                <button className="btn-primary" onClick={() => window.dispatchEvent(new CustomEvent('openPostProperty'))}>
+                <button className="btn-primary" onClick={handleOpenAdd}>
                   <Plus size={16} />
                   Add another property
                 </button>
@@ -170,6 +219,37 @@ export default function MyPropertiesPage() {
                     <span className="metric-card-value">{metric.value}</span>
                   </div>
                 ))}
+              </div>
+            )}
+
+            {/* Subscription status chip */}
+            {currentUser && (
+              <div className="sub-status-bar">
+                {subscription ? (
+                  <>
+                    <span className="sub-status-active">
+                      <BadgeCheck size={15} />
+                      Active Subscription
+                    </span>
+                    <span className="sub-status-detail">
+                      {subscription.postsUsed} / {subscription.postsLimit} posts used
+                    </span>
+                    <span className="sub-status-detail">
+                      <Calendar size={13} />
+                      Expires {new Date(subscription.endDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="sub-status-none">No active subscription</span>
+                    <button
+                      className="btn-primary sub-status-upgrade-btn"
+                      onClick={() => setIsSubModalOpen(true)}
+                    >
+                      Subscribe — ₹3,650/yr
+                    </button>
+                  </>
+                )}
               </div>
             )}
 
@@ -190,7 +270,7 @@ export default function MyPropertiesPage() {
                 <h3>No properties posted yet</h3>
                 <p>You haven&apos;t submitted any listings yet. Use the redesigned flow to add your first property.</p>
                 <button
-                  onClick={() => window.dispatchEvent(new CustomEvent('openPostProperty'))}
+                  onClick={handleOpenAdd}
                   className="btn-primary"
                   style={{ marginTop: '1rem' }}
                 >
@@ -216,30 +296,67 @@ export default function MyPropertiesPage() {
                         initial={{ opacity: 0, y: 18 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 12 }}
-                        className="zillow-card glass-card"
+                        className="my-prop-card"
                       >
-                        <div className="zillow-image-container">
+                        <div className="my-prop-image-area">
                           <ImageCarousel images={getAllImages(property)} altText={property.location || 'Property'} />
-                          <span className="zillow-badge">My Listing</span>
+                          <div className="my-prop-status">
+                            <span className="status-dot"></span> Active
+                          </div>
+                          <div className="my-prop-actions-overlay">
+                            <button 
+                              className="action-btn edit-btn" 
+                              onClick={(e) => { 
+                                e.stopPropagation(); 
+                                handleEdit(property); 
+                              }}
+                            >
+                              <Pencil size={15} />
+                              Update
+                            </button>
+                            <button 
+                              className="action-btn delete-btn" 
+                              onClick={(e) => { 
+                                e.stopPropagation(); 
+                                handleDelete(property._id); 
+                              }}
+                            >
+                              <Trash2 size={15} />
+                              Delete
+                            </button>
+                          </div>
                         </div>
 
-                        <div className="zillow-info">
-                          <h3 className="zillow-price">{formatPrice(property.price)}</h3>
-                          <p className="zillow-address">
-                            <MapPin size={16} />
+                        <div className="my-prop-details">
+                          <div className="my-prop-header">
+                            <h3 className="my-prop-price">{formatPrice(property.price)}</h3>
+                            <span className="my-prop-type-pill">{property.propertyType || 'Property'}</span>
+                          </div>
+                          
+                          <p className="my-prop-address">
+                            <MapPin size={15} />
                             {property.location || 'Location unavailable'}
                           </p>
 
-                          <div className="zillow-specs">
-                            {specs.map((spec) => (
-                              <span key={spec} className="spec-pill">
-                                {spec}
-                              </span>
-                            ))}
-                          </div>
-
-                          <div className="zillow-card-footer">
-                            <span className="zillow-agent-tag">Visible in your owner dashboard</span>
+                          <div className="my-prop-metrics">
+                            {property.dynamicData?.bedrooms && (
+                              <div className="metric-item">
+                                <span className="metric-val">{property.dynamicData.bedrooms}</span>
+                                <span className="metric-lbl">Beds</span>
+                              </div>
+                            )}
+                            {property.dynamicData?.bathrooms && (
+                              <div className="metric-item">
+                                <span className="metric-val">{property.dynamicData.bathrooms}</span>
+                                <span className="metric-lbl">Baths</span>
+                              </div>
+                            )}
+                            {property.dynamicData?.sqft && (
+                              <div className="metric-item">
+                                <span className="metric-val">{property.dynamicData.sqft}</span>
+                                <span className="metric-lbl">Sqft</span>
+                              </div>
+                            )}
                           </div>
                         </div>
                       </motion.article>
@@ -251,6 +368,31 @@ export default function MyPropertiesPage() {
           </div>
         </div>
       </div>
+
+      <PostPropertyModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        user={currentUser}
+        editData={editingProperty}
+        onPropertyAdded={() => {
+          fetchProps();
+          fetchSubStatus(currentUser?.id);
+          setIsModalOpen(false);
+        }}
+      />
+
+      <SubscriptionModal
+        isOpen={isSubModalOpen}
+        onClose={() => setIsSubModalOpen(false)}
+        user={currentUser}
+        onSubscribed={(sub) => {
+          setSubscription(sub);
+          setIsSubModalOpen(false);
+          // Auto-open add property after subscribing
+          setEditingProperty(null);
+          setIsModalOpen(true);
+        }}
+      />
     </div>
   );
 }

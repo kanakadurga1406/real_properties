@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ExternalLink, Star, Briefcase, Users, Loader2, Building2 } from 'lucide-react';
-import '../LandingPage.css'; // Leverage existing colors and utility classes
+import CONFIG from '../config';
 
-const API_URL = 'https://api.wealthassociate.in';
+const API_URL = CONFIG.API_BASE_URL;
 
 const NetworkSection = () => {
   const [activeTab, setActiveTab] = useState('coreProjects');
@@ -13,6 +13,8 @@ const NetworkSection = () => {
     coreClients: []
   });
   const [loading, setLoading] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const scrollRef = useRef(null);
 
   useEffect(() => {
     const fetchNetworkData = async () => {
@@ -43,9 +45,19 @@ const NetworkSection = () => {
     fetchNetworkData();
   }, []);
 
+  const handleScroll = (e) => {
+    if (!scrollRef.current) return;
+    const scrollLeft = e.target.scrollLeft;
+    const width = e.target.offsetWidth;
+    // Calculate which item is most centered
+    const index = Math.round(scrollLeft / (width * 0.8)); // 0.8 matches the 82% card width in CSS
+    if (index !== activeIndex) {
+      setActiveIndex(index);
+    }
+  };
+
   const handleOpenLink = (url) => {
     if (url) {
-      // In a real web app we can just open in a new tab
       window.open(url, '_blank', 'noopener,noreferrer');
     } else {
       alert("Website link not available");
@@ -82,7 +94,11 @@ const NetworkSection = () => {
             <button
               key={tab.id}
               aria-label={`View ${tab.label}`}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => {
+                setActiveTab(tab.id);
+                setActiveIndex(0);
+                if (scrollRef.current) scrollRef.current.scrollLeft = 0;
+              }}
               className={`network-tab-btn ${activeTab === tab.id ? 'active' : ''}`}
               style={{
                 display: 'flex', alignItems: 'center', gap: '0.6rem',
@@ -119,62 +135,84 @@ const NetworkSection = () => {
               <p>Check back later for updates.</p>
             </div>
           ) : (
-            <motion.div 
-              className="network-grid" 
-              style={{ 
-                display: 'grid', 
-                gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', 
-                gap: '1.5rem' 
-              }}
-              key={activeTab}
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-            >
-              <AnimatePresence>
-                {currentItems.map(item => (
-                  <motion.div
-                    key={item._id}
-                    layout
-                    whileHover={{ y: -6 }}
-                    className="zillow-card"
-                    style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', background: 'var(--surface)' }}
-                    onClick={() => handleOpenLink(item.website || item.trueUrl)}
-                  >
-                    <div className="zillow-image-container" style={{ aspectRatio: '16/10', padding: '1.2rem', background: '#ffffff', borderBottom: '1px solid var(--line-soft)' }}>
-                      <img 
-                        src={item.newImageUrl || item.image || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80'} 
-                        alt={item.projectName || item.city || 'Partner'} 
-                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                      />
-                      <div className="zillow-badge" style={{ display: 'flex', alignItems: 'center', gap: '5px', top: '10px', left: '10px', background: 'var(--surface-contrast)', color: '#ffffff', border: 'none', padding: '6px 12px' }}>
-                        <ExternalLink size={12} strokeWidth={2.5} /> <span style={{ fontWeight: 'bold' }}>Visit</span>
+            <>
+              <motion.div 
+                ref={scrollRef}
+                onScroll={handleScroll}
+                className="network-grid network-grid-swipe" 
+                key={activeTab}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+              >
+                <AnimatePresence>
+                  {currentItems.map(item => (
+                    <motion.div
+                      key={item._id}
+                      layout
+                      whileHover={{ y: -6 }}
+                      className="zillow-card"
+                      style={{ cursor: 'pointer', display: 'flex', flexDirection: 'column', background: 'var(--surface)' }}
+                      onClick={() => handleOpenLink(item.website || item.trueUrl)}
+                    >
+                      <div className="zillow-image-container" style={{ aspectRatio: '16/10', padding: '1.2rem', background: '#ffffff', borderBottom: '1px solid var(--line-soft)' }}>
+                        <img 
+                          src={item.newImageUrl || item.image || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80'} 
+                          alt={item.projectName || item.city || 'Partner'} 
+                          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                        />
+                        <div className="zillow-badge" style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '6px', 
+                          top: '12px', 
+                          left: '12px', 
+                          background: 'var(--primary)', 
+                          color: '#ffffff', 
+                          border: 'none', 
+                          padding: '7px 14px', 
+                          boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                          fontSize: '0.8rem'
+                        }}>
+                          <ExternalLink size={13} strokeWidth={2.5} /> 
+                          <span style={{ fontWeight: '800', letterSpacing: '0.02em' }}>VISIT</span>
+                        </div>
                       </div>
-                    </div>
-                    
-                    {activeTab !== 'coreClients' && (
-                      <div className="zillow-info" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '1.4rem' }}>
-                        <h3 className="zillow-price" style={{ fontSize: '1.15rem', lineHeight: '1.3', color: 'var(--text)', marginBottom: '0.3rem' }}>{item.city || 'Project Location'}</h3>
-                        <p className="zillow-address" style={{ marginTop: '0', color: 'var(--text-soft)', fontSize: '0.9rem', lineHeight: '1.5' }}>{item.projectName || 'Premium Development'}</p>
-                        
-                        {item.trueUrl && (
-                          <div style={{ width: '100%', marginTop: 'auto', paddingTop: '1.2rem' }}>
-                            <button 
-                              className="btn-primary" 
-                              aria-label={`Open True Sale platform for ${item.projectName || item.city}`}
-                              style={{ width: '100%', justifyContent: 'center', padding: '0.75rem', fontSize: '0.9rem', width: '100%', background: '#4F46E5', color: '#ffffff', border: 'none', boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)' }}
-                              onClick={(e) => { e.stopPropagation(); handleOpenLink(item.trueUrl); }}
-                            >
-                              True Sale Platform
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </motion.div>
+                      
+                      {activeTab !== 'coreClients' && (
+                        <div className="zillow-info" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '1.4rem' }}>
+                          <h3 className="zillow-price" style={{ fontSize: '1.15rem', lineHeight: '1.3', color: 'var(--text)', marginBottom: '0.3rem' }}>{item.city || 'Project Location'}</h3>
+                          <p className="zillow-address" style={{ marginTop: '0', color: 'var(--text-soft)', fontSize: '0.9rem', lineHeight: '1.5' }}>{item.projectName || 'Premium Development'}</p>
+                          
+                          {item.trueUrl && (
+                            <div style={{ width: '100%', marginTop: 'auto', paddingTop: '1.2rem' }}>
+                              <button 
+                                className="btn-primary" 
+                                aria-label={`Open True Sale platform for ${item.projectName || item.city}`}
+                                style={{ width: '100%', justifyContent: 'center', padding: '0.75rem', fontSize: '0.9rem', width: '100%', background: '#4F46E5', color: '#ffffff', border: 'none', boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)' }}
+                                onClick={(e) => { e.stopPropagation(); handleOpenLink(item.trueUrl); }}
+                              >
+                                True Sale Platform
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
+              </motion.div>
+
+              {/* Indicator Dots - Only visible on Mobile via CSS hide-on-desktop */}
+              <div className="swipe-indicators hide-on-desktop">
+                {currentItems.map((_, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`swipe-dot ${idx === activeIndex ? 'active' : ''}`}
+                  />
                 ))}
-              </AnimatePresence>
-            </motion.div>
+              </div>
+            </>
           )}
         </div>
       </div>

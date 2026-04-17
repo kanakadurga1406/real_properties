@@ -11,18 +11,18 @@ const heroImages = [
 const highlights = [
   {
     icon: <ShieldCheck size={16} />,
-    title: 'Verified listings',
-    copy: 'Approved and community-submitted properties surfaced in one guided discovery flow.'
+    title: 'Legal Clearance',
+    copy: 'Every official project undergoes thorough legal vetting for peace of mind.'
   },
   {
     icon: <TrendingUp size={16} />,
-    title: 'Built for decisions',
-    copy: 'Clear pricing, region context, and lead-ready contact actions to reduce drop-off.'
+    title: 'High ROI Potential',
+    copy: 'Strategic locations in growth corridors ensure maximum appreciation for your investment.'
   },
   {
     icon: <BadgeCheck size={16} />,
-    title: 'Trust-first experience',
-    copy: 'Professional presentation that helps buyers engage faster and owners list with confidence.'
+    title: 'Verified Owners',
+    copy: 'Direct interaction with authentic owners and developers reduces middleman friction.'
   }
 ];
 
@@ -74,18 +74,15 @@ const HeroSection = ({ onExplore, onSearch }) => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.65, ease: 'easeOut' }}
             >
-              <span className="section-eyebrow">
-                <Sparkles size={14} />
-                Refined Property Discovery
-              </span>
+
 
               <h1 className="hero-title">
-                Find the right property with more trust, less friction.
+                Connecting you to verified property opportunities across South India.
               </h1>
 
               <p className="hero-subtitle">
-                A redesigned real-estate experience for browsing verified opportunities, exploring local demand,
-                and posting listings with a polished, mobile-first journey that feels credible from the first click.
+                Browse premium plots, villas, and apartments with full legal clearance and transparent pricing. 
+                Post your own listings and reach thousands of verified buyers through our trusted platform.
               </p>
 
               <form className={`hero-command-center ${isFocused ? 'focused' : ''}`} onSubmit={handleSubmit}>
@@ -115,9 +112,9 @@ const HeroSection = ({ onExplore, onSearch }) => {
 
               <div className="hero-spatial-stats">
                 {[
-                  { value: '500+', label: 'active opportunities' },
-                  { value: '10k+', label: 'high-intent users reached' },
-                  { value: '24/7', label: 'responsive across devices' }
+                  { value: '500+', label: 'Verified Listings' },
+                  { value: '10k+', label: 'Registered Buyers' },
+                  { value: '24/7', label: 'Support Available' }
                 ].map((item) => (
                   <div key={item.label} className="spatial-stat-item">
                     <span className="stat-val">{item.value}</span>
@@ -133,10 +130,10 @@ const HeroSection = ({ onExplore, onSearch }) => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.7, delay: 0.12, ease: 'easeOut' }}
             >
-              <h3 className="hero-side-headline">Why this redesign performs better</h3>
+              <h3 className="hero-side-headline">The Real Properties Advantage</h3>
               <p className="hero-side-copy">
-                Stronger visual hierarchy, fewer dead ends, and clearer buyer-owner actions help increase attention,
-                trust, and conversion across desktop, tablet, and mobile.
+                We simplify the real estate journey by providing cleared titles, market insights, and direct connections 
+                between owners and serious buyers across key growth corridors.
               </p>
 
               <div className="hero-highlights">
@@ -154,8 +151,8 @@ const HeroSection = ({ onExplore, onSearch }) => {
               <div className="hero-trust-strip">
                 {[
                   ['Inventory', 'Plots, villas, apartments'],
-                  ['Actions', 'Browse, login, post, manage'],
-                  ['Responsive', 'Mobile, tablet, desktop'],
+                  ['Locations', 'Andhra, Telangana, Bengaluru'],
+                  ['Trust', 'Legal clearance guaranteed'],
                   ['Support', 'Direct inquiry ready']
                 ].map(([label, value]) => (
                   <div key={label} className="trust-chip">
