@@ -77,7 +77,7 @@ const HeroSection = ({ onExplore, onSearch }) => {
 
 
               <h1 className="hero-title">
-                Connecting you to verified property opportunities across South India.
+                Connecting you to verified property opportunities across Telugu States.
               </h1>
 
               <p className="hero-subtitle">

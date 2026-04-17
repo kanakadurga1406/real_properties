@@ -2745,3 +2745,82 @@ input[type="file"]::file-selector-button:active {
   font-weight: 600;
   text-transform: uppercase;
 }
+
+/* Lead Collection Form & Contact Actions v2 */
+.lead-form-container {
+  padding: 1.5rem;
+  background: var(--surface-strong);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--line);
+  margin-top: 1rem;
+}
+
+.lead-form-title {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-family: var(--font-heading);
+  font-weight: 800;
+  font-size: 1.1rem;
+  color: var(--text);
+  margin-bottom: 0.4rem;
+}
+
+.lead-form-subtitle {
+  font-size: 0.88rem;
+  color: var(--text-soft);
+  margin-bottom: 1.2rem;
+  line-height: 1.5;
+}
+
+.lead-submission-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.lead-submission-form input {
+  padding: 0.9rem 1.2rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--line);
+  background: var(--bg-soft);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.lead-submission-form input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px var(--primary-soft);
+}
+
+.lead-submit-btn {
+  margin-top: 0.5rem;
+  padding: 1rem !important;
+  font-size: 0.95rem;
+}
+
+.contact-actions {
+  width: 100%;
+}
+
+.whatsapp-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(37, 211, 102, 0.25);
+  background: #20BA5A !important;
+}
+
+.call-btn {
+  background: var(--surface-contrast) !important;
+  color: #fff !important;
+}
+
+.call-btn:hover {
+  background: var(--surface-contrast-soft) !important;
+}
+
+@media (max-width: 768px) {
+  .contact-actions > div {
+    grid-template-columns: 1fr !important;
+  }
+}

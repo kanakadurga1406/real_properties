@@ -4,6 +4,7 @@ import {
   AlertCircle,
   ArrowRight,
   ArrowUpDown,
+  BadgeCheck,
   Building2,
   Check,
   CheckCircle2,
@@ -19,6 +20,7 @@ import {
   Lock,
   Loader2,
   MapPin,
+  MessageCircle,
   Phone,
   PhoneCall,
   Ruler,
@@ -112,6 +114,82 @@ function PropertiesPage({ heroSearchTerm = '' }) {
   const [contactPhone, setContactPhone] = useState(CONFIG.SUPPORT_PHONE);
   const [contactName, setContactName] = useState('Real Properties');
   const [isFetchingPhone, setIsFetchingPhone] = useState(false);
+  const [leadData, setLeadData] = useState(null);
+  const [isSubmittingLead, setIsSubmittingLead] = useState(false);
+  const [leadForm, setLeadForm] = useState({ name: '', mobile: '', location: '' });
+  const [loggedProperties, setLoggedProperties] = useState(new Set());
+  const [hasRequested, setHasRequested] = useState(false);
+
+  // Load user and lead data from localStorage
+  useEffect(() => {
+    const storedLead = localStorage.getItem('realprop_lead');
+    if (storedLead) {
+      setLeadData(JSON.parse(storedLead));
+    }
+  }, []);
+
+  // Reset request state when switching properties
+  useEffect(() => {
+    setHasRequested(false);
+  }, [selectedProperty]);
+
+  const logLeadManual = async (propertyId, data) => {
+    const pid = propertyId.slice(-4).toUpperCase();
+    if (loggedProperties.has(pid)) return;
+
+    try {
+      await fetch(`${CONFIG.API_BASE_URL}/realproperties/lead/save`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...data, propertyId: pid }),
+      });
+      setLoggedProperties(prev => new Set(prev).add(pid));
+      console.log(`[LEAD] Explicit request logged for PID: ${pid}`);
+    } catch (err) {
+      console.warn('Manual lead log failed:', err);
+    }
+  };
+
+  const handleRequestClick = () => {
+    if (leadData && selectedProperty) {
+      logLeadManual(selectedProperty._id, leadData);
+    }
+    setHasRequested(true);
+  };
+
+  const handleLeadSubmit = async (e, propertyId) => {
+    e.preventDefault();
+    if (!leadForm.name || !leadForm.mobile || !leadForm.location) {
+      alert('Please fill all fields');
+      return;
+    }
+
+    setIsSubmittingLead(true);
+    const pid = propertyId.slice(-4).toUpperCase();
+    try {
+      const response = await fetch(`${CONFIG.API_BASE_URL}/realproperties/lead/save`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...leadForm, propertyId: pid }),
+      });
+
+      if (response.ok) {
+        const savedData = { ...leadForm };
+        localStorage.setItem('realprop_lead', JSON.stringify(savedData));
+        setLeadData(savedData);
+        setLoggedProperties(prev => new Set(prev).add(pid));
+        setHasRequested(true);
+      } else {
+        const err = await response.json();
+        alert(err.message || 'Failed to save details');
+      }
+    } catch (err) {
+      console.error('Lead submission error:', err);
+      alert('Network error. Please try again.');
+    } finally {
+      setIsSubmittingLead(false);
+    }
+  };
 
   const fetchSubStatus = async (userId) => {
     try {
@@ -831,41 +909,73 @@ function PropertiesPage({ heroSearchTerm = '' }) {
 
                   {/* Contact Footer — gated behind subscription */}
                   <div className="sidebar-footer">
-                     {currentUser ? (
-                      // ✅ Logged in: show full call button
-                      <>
-                        <a href={`tel:${contactPhone}`} className="contact-btn">
-                          {isFetchingPhone ? <Loader2 className="spinner" size={18} /> : (
-                            <>
-                              <Phone size={18} />
-                              Call {contactName}
-                            </>
-                          )}
-                        </a>
-                        <p className="sidebar-note" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+                    {!hasRequested ? (
+                      // 🚀 Step 1: Initial Request Button
+                      <button className="btn-primary" style={{ width: '100%', padding: '1.2rem' }} onClick={handleRequestClick}>
+                        <MessageCircle size={20} />
+                        Request Contact Details
+                      </button>
+                    ) : !leadData ? (
+                      // 📝 Step 2: Lead Collection Form (if guest unknown)
+                      <div className="lead-form-container" style={{ marginTop: 0 }}>
+                        <div className="lead-form-title">
+                          <BadgeCheck size={18} color="var(--primary)" />
+                          <span>Unlock Contact Details</span>
+                        </div>
+                        <p className="lead-form-subtitle">Enter your details to call or WhatsApp the owner directly.</p>
+                        <form onSubmit={(e) => handleLeadSubmit(e, sp._id)} className="lead-submission-form">
+                          <input
+                            type="text"
+                            placeholder="Your Name"
+                            value={leadForm.name}
+                            onChange={(e) => setLeadForm({ ...leadForm, name: e.target.value })}
+                            required
+                          />
+                          <input
+                            type="tel"
+                            placeholder="Mobile Number"
+                            value={leadForm.mobile}
+                            onChange={(e) => setLeadForm({ ...leadForm, mobile: e.target.value })}
+                            required
+                          />
+                          <input
+                            type="text"
+                            placeholder="Your Location"
+                            value={leadForm.location}
+                            onChange={(e) => setLeadForm({ ...leadForm, location: e.target.value })}
+                            required
+                          />
+                          <button type="submit" className="btn-primary lead-submit-btn" disabled={isSubmittingLead}>
+                            {isSubmittingLead ? <Loader2 className="spinner" size={18} /> : 'View Contact Details'}
+                          </button>
+                        </form>
+                      </div>
+                    ) : (
+                      // 📞 Step 3: Contact Actions (Lead Captured & Requested)
+                      <div className="contact-actions">
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.8rem', width: '100%' }}>
+                          <a href={`tel:${contactPhone}`} className="contact-btn call-btn">
+                            {isFetchingPhone ? <Loader2 className="spinner" size={18} /> : (
+                              <>
+                                <Phone size={18} />
+                                Call Now
+                              </>
+                            )}
+                          </a>
+                          <a 
+                            href={`https://wa.me/${contactPhone.replace(/\+/g, '')}?text=${encodeURIComponent(`Hi, I'm interested in the property (ID: ${sp._id?.slice(-4).toUpperCase()}) at ${sp.location}. Please share more details.`)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="contact-btn whatsapp-btn"
+                            style={{ background: '#25D366', color: '#fff', border: 'none' }}
+                          >
+                            <MessageCircle size={18} />
+                            WhatsApp
+                          </a>
+                        </div>
+                        <p className="sidebar-note" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginTop: '0.8rem' }}>
                           <PhoneCall size={13} /> {contactPhone.length > 10 ? contactPhone : `+91 ${contactPhone}`} &nbsp;|&nbsp; Property ID: {sp._id?.slice(-4).toUpperCase() || 'N/A'}
                         </p>
-                      </>
-                    ) : (
-                      // 🔒 Not logged in: auth gate
-                      <div className="prop-gate">
-                        <div className="prop-gate-lock">
-                          <Lock size={22} />
-                        </div>
-                        <div className="prop-gate-text">
-                          <strong>Members Only</strong>
-                          <span>Sign in to view contact details &amp; call the seller directly.</span>
-                        </div>
-                        <button
-                          className="btn-primary prop-gate-btn"
-                          onClick={() => {
-                            setSelectedProperty(null);
-                            window.dispatchEvent(new CustomEvent('openAuth'));
-                          }}
-                        >
-                          <User size={15} />
-                          Sign In to View
-                        </button>
                       </div>
                     )}
                   </div>
