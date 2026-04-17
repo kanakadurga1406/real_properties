@@ -831,8 +831,8 @@ function PropertiesPage({ heroSearchTerm = '' }) {
 
                   {/* Contact Footer — gated behind subscription */}
                   <div className="sidebar-footer">
-                     {subscription ? (
-                      // ✅ Subscribed: show full call button
+                     {currentUser ? (
+                      // ✅ Logged in: show full call button
                       <>
                         <a href={`tel:${contactPhone}`} className="contact-btn">
                           {isFetchingPhone ? <Loader2 className="spinner" size={18} /> : (
@@ -847,24 +847,24 @@ function PropertiesPage({ heroSearchTerm = '' }) {
                         </p>
                       </>
                     ) : (
-                      // 🔒 Not subscribed: subscription gate
+                      // 🔒 Not logged in: auth gate
                       <div className="prop-gate">
                         <div className="prop-gate-lock">
                           <Lock size={22} />
                         </div>
                         <div className="prop-gate-text">
-                          <strong>Premium Members Only</strong>
-                          <span>Subscribe to view contact details &amp; call the seller directly.</span>
+                          <strong>Members Only</strong>
+                          <span>Sign in to view contact details &amp; call the seller directly.</span>
                         </div>
                         <button
                           className="btn-primary prop-gate-btn"
                           onClick={() => {
                             setSelectedProperty(null);
-                            window.dispatchEvent(new CustomEvent('openSubscription'));
+                            window.dispatchEvent(new CustomEvent('openAuth'));
                           }}
                         >
-                          <Sparkles size={15} />
-                          Subscribe — ₹3,650/yr
+                          <User size={15} />
+                          Sign In to View
                         </button>
                       </div>
                     )}
