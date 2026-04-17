@@ -115,9 +115,6 @@ const SubscriptionModal = ({ isOpen, onClose, user, onSubscribed }) => {
                 exit={{ opacity: 0, x: -20 }}
               >
                 <div className="sub-modal-header">
-                  <span className="section-eyebrow">
-                    <Sparkles size={13} /> Listing Subscription
-                  </span>
                   <h2 className="sub-modal-title">Unlock property posting</h2>
                   <p className="sub-modal-copy">
                     A one-time yearly plan gives you everything you need to list and manage properties on Real Properties.

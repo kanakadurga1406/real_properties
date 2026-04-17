@@ -27,6 +27,16 @@ const LandingPage = () => {
   // Pending action after auth
   const [pendingAction, setPendingAction] = useState(null); // 'post' | 'subscribe'
 
+  // Floating badge click — auth → sub → post
+  const handleSubscribeClick = () => {
+    if (!currentUser) {
+      setPendingAction('subscribe');
+      setIsAuthOpen(true);
+      return;
+    }
+    setIsSubOpen(true);
+  };
+
   // Dynamic SEO Setup
   useEffect(() => {
     document.title = "Real Properties | 100% Approved Plots, Villas & Flats | Real Properties";
@@ -103,6 +113,13 @@ const LandingPage = () => {
     return () => window.removeEventListener('openPostProperty', handleOpenPost);
   }, [currentUser, subscription]);
 
+  // Listen for "openSubscription" from PropertiesPage gated section
+  useEffect(() => {
+    const handleOpenSub = () => handleSubscribeClick();
+    window.addEventListener('openSubscription', handleOpenSub);
+    return () => window.removeEventListener('openSubscription', handleOpenSub);
+  }, [handleSubscribeClick]);
+
   // After login, continue with the pending action
   const handleLoginSuccess = (userData) => {
     setCurrentUser(userData);
@@ -134,15 +151,6 @@ const LandingPage = () => {
     });
   };
 
-  // Floating badge click — auth → sub → post
-  const handleSubscribeClick = () => {
-    if (!currentUser) {
-      setPendingAction('subscribe');
-      setIsAuthOpen(true);
-      return;
-    }
-    setIsSubOpen(true);
-  };
 
   const handleSearch = (term) => {
     setHeroSearch(term);

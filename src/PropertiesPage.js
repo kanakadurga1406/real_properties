@@ -109,6 +109,9 @@ function PropertiesPage({ heroSearchTerm = '' }) {
   const [subscription, setSubscription] = useState(null);
   const [visibleCount, setVisibleCount] = useState(6);
   const [activeCategory, setActiveCategory] = useState('approved');
+  const [contactPhone, setContactPhone] = useState(CONFIG.SUPPORT_PHONE);
+  const [contactName, setContactName] = useState('Real Properties');
+  const [isFetchingPhone, setIsFetchingPhone] = useState(false);
 
   const fetchSubStatus = async (userId) => {
     try {
@@ -208,6 +211,53 @@ function PropertiesPage({ heroSearchTerm = '' }) {
       }
     }
     return () => document.body.classList.remove('modal-open');
+  }, [selectedProperty]);
+
+  // Logic to determine contact phone number: Referrer for verified, Poster for unverified
+  useEffect(() => {
+    const updateContactInfo = async () => {
+      if (!selectedProperty) {
+        setContactPhone(CONFIG.SUPPORT_PHONE);
+        return;
+      }
+
+      setIsFetchingPhone(true);
+      try {
+        if (selectedProperty.isApproved) {
+          // For verified properties, fetch the referrer's details
+          const res = await fetch(`${CONFIG.API_BASE_URL}/properties/getreqreff/${selectedProperty.PostedBy}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (data.phone) {
+              setContactPhone(String(data.phone).replace(/\s/g, ''));
+              setContactName(data.name || 'Real Properties');
+            } else {
+              setContactPhone(CONFIG.SUPPORT_PHONE.replace(/\s/g, ''));
+              setContactName('Real Properties');
+            }
+          } else {
+            setContactPhone(CONFIG.SUPPORT_PHONE.replace(/\s/g, ''));
+            setContactName('Real Properties');
+          }
+        } else {
+          // For unverified properties, use the poster's details
+          const posterMobile = selectedProperty.mobile || selectedProperty.PostedBy;
+          setContactName(selectedProperty.fullName || 'Poster');
+          if (posterMobile) {
+            setContactPhone(String(posterMobile).replace(/\s/g, ''));
+          } else {
+            setContactPhone(CONFIG.SUPPORT_PHONE.replace(/\s/g, ''));
+          }
+        }
+      } catch (err) {
+        console.warn('Error fetching contact info:', err);
+        setContactPhone(CONFIG.SUPPORT_PHONE.replace(/\s/g, ''));
+      } finally {
+        setIsFetchingPhone(false);
+      }
+    };
+
+    updateContactInfo();
   }, [selectedProperty]);
 
   useEffect(() => {
@@ -781,15 +831,19 @@ function PropertiesPage({ heroSearchTerm = '' }) {
 
                   {/* Contact Footer — gated behind subscription */}
                   <div className="sidebar-footer">
-                    {subscription ? (
+                     {subscription ? (
                       // ✅ Subscribed: show full call button
                       <>
-                        <a href="tel:7796356789" className="contact-btn">
-                          <Phone size={18} />
-                          Call Real Properties
+                        <a href={`tel:${contactPhone}`} className="contact-btn">
+                          {isFetchingPhone ? <Loader2 className="spinner" size={18} /> : (
+                            <>
+                              <Phone size={18} />
+                              Call {contactName}
+                            </>
+                          )}
                         </a>
                         <p className="sidebar-note" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
-                          <PhoneCall size={13} /> +91 77963 56789 &nbsp;|&nbsp; Property ID: {sp._id?.slice(-4).toUpperCase() || 'N/A'}
+                          <PhoneCall size={13} /> {contactPhone.length > 10 ? contactPhone : `+91 ${contactPhone}`} &nbsp;|&nbsp; Property ID: {sp._id?.slice(-4).toUpperCase() || 'N/A'}
                         </p>
                       </>
                     ) : (

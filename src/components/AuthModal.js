@@ -79,10 +79,6 @@ const AuthModal = ({ isOpen, onClose, onLoginSuccess }) => {
             </button>
 
             <div className="modal-header">
-              <span className="section-eyebrow">
-                <ShieldCheck size={14} />
-                Secure Access
-              </span>
               <h2 className="modal-title">{isLogin ? 'Welcome back' : 'Create your account'}</h2>
               <p className="modal-copy">
                 {isLogin
