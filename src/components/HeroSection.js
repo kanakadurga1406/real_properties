@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowRight, BadgeCheck, MapPin, Search, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react';
+import { ArrowRight, BadgeCheck, Grid, Layers, MapPin, Search, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react';
 
 const heroImages = [
   'https://images.unsplash.com/photo-1600607687644-c7171b42498f?auto=format&fit=crop&w=1800&q=80',
@@ -75,6 +75,17 @@ const HeroSection = ({ onExplore, onSearch }) => {
               transition={{ duration: 0.65, ease: 'easeOut' }}
             >
 
+
+              <div className="hero-badge-actions">
+                <button className="hero-badge-btn" onClick={onExplore}>
+                  <Grid size={14} />
+                  View All Listing Properties
+                </button>
+                <button className="hero-badge-btn" onClick={() => document.getElementById('network')?.scrollIntoView({ behavior: 'smooth' })}>
+                  <Layers size={14} />
+                  View All Projects
+                </button>
+              </div>
 
               <h1 className="hero-title">
                 Connecting you to verified property opportunities across Telugu States.
