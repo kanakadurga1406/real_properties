@@ -221,7 +221,7 @@ function PropertiesPage({ heroSearchTerm = '' }) {
       // 1. Core SEO Details
       const location = selectedProperty.location || selectedProperty.city || 'Andhra Pradesh & Telangana';
       const type = selectedProperty.propertyType || 'Real Estate';
-      const priceText = selectedProperty.price ? `₹${Number(selectedProperty.price).toLocaleString('en-IN')}` : 'Contact for Price';
+      const priceText = formatPrice(selectedProperty.price);
       const title = `${type} in ${location} - ${priceText} | Real Properties`;
       const desc = `Check out this verified ${type.toLowerCase()} located in ${location}. Priced at ${priceText}. View details, layout, and contact Real Properties to secure this listing.`;
       const imageUrl = selectedProperty.photo || selectedProperty.newImageUrls || 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=1200&h=630&fit=crop';
@@ -478,6 +478,12 @@ function PropertiesPage({ heroSearchTerm = '' }) {
       return priceStr;
     }
 
+    if (num >= 10000000) {
+      return `₹${(num / 10000000).toFixed(2).replace(/\.00$/, '')} Cr`;
+    } else if (num >= 100000) {
+      return `₹${(num / 100000).toFixed(2).replace(/\.00$/, '')} Lakhs`;
+    }
+
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
@@ -525,64 +531,115 @@ function PropertiesPage({ heroSearchTerm = '' }) {
     ].filter(Boolean);
 
     return (
-      <motion.article layout whileHover={{ y: -4 }} className="zillow-card" onClick={() => setSelectedProperty(property)}>
-        <div className="zillow-image-container">
+      <motion.article layout whileHover={{ y: -6 }} className="v3-property-card" onClick={() => setSelectedProperty(property)}>
+        <div className="v3-image-frame">
           <ImageCarousel images={propertyImages} altText={property.location || 'Property'} />
-          <div className="zillow-badge" style={{ 
-            background: property.isApproved ? 'var(--primary)' : '#eab308', 
-            color: '#ffffff',
-            border: 'none', top: '10px', left: '10px'
-          }}>
-            {property.isApproved ? 'Approved' : 'unverified'}
+          
+          <div className="v3-top-badges">
+            <div className={`v3-status-badge ${property.isApproved ? 'approved' : 'unverified'}`}>
+              {property.isApproved ? <BadgeCheck size={14} /> : <AlertCircle size={14} />}
+              {property.isApproved ? 'Approved' : 'Unverified'}
+            </div>
           </div>
-          <span className="zillow-image-count">{propertyImages.length} photo{propertyImages.length !== 1 ? 's' : ''}</span>
+          
+          {/* Subtle gradient overlay for image */}
+          <div className="v3-image-overlay" />
         </div>
 
-        <div className="zillow-info">
-          <h3 className="zillow-price">{formatPrice(property.price)}</h3>
-          <p className="zillow-address">
-            <MapPin size={14} />
+        <div className="v3-card-body">
+          <div className="v3-type-highlight">
+            {property.propertyType || 'Property'}
+          </div>
+
+          <div className="v3-price-row">
+            <h3 className="v3-price">{formatPrice(property.price)}</h3>
+          </div>
+          
+          <p className="v3-location">
+            <MapPin size={14} strokeWidth={2.5} />
             {property.location || 'Location unavailable'}
           </p>
 
-          {/* BHK + Area quick row */}
           {(bhk || area) && (
-            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', margin: '0.3rem 0' }}>
-              {bhk && <span className="spec-pill" style={{ background: 'var(--accent)', color: '#fff' }}>{bhk}</span>}
-              {area && <span className="spec-pill">{area}</span>}
+            <div className="v3-key-metrics">
+              {bhk && (
+                <div className="v3-metric">
+                  <Home size={14} />
+                  <span>{bhk}</span>
+                </div>
+              )}
+              {area && (
+                <div className="v3-metric">
+                  <Ruler size={14} />
+                  <span>{area}</span>
+                </div>
+              )}
             </div>
           )}
 
-          <div className="zillow-specs">
-            {specs.map((spec) => (
-              <span key={spec} className="spec-pill">{spec}</span>
-            ))}
-          </div>
+          {specs.filter(s => s !== (property.propertyType || 'Property')).length > 0 && (
+            <div className="v3-tags">
+              {specs.filter(s => s !== (property.propertyType || 'Property')).map((spec) => (
+                <span key={spec} className="v3-tag">{spec}</span>
+              ))}
+            </div>
+          )}
 
           {property.propertyDetails && property.propertyDetails !== 'no details' && (
-            <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '0.4rem', lineHeight: 1.4 }}>
-              {property.propertyDetails.length > 80 ? property.propertyDetails.slice(0, 80) + '…' : property.propertyDetails}
+            <p className="v3-description">
+              {property.propertyDetails.length > 70 ? property.propertyDetails.slice(0, 70) + '…' : property.propertyDetails}
             </p>
           )}
 
-          <div className="zillow-card-footer">
-            <span className="zillow-agent-tag">
-              {property.fullName ? `Posted by ${property.fullName}` : 'Real Properties'}
-            </span>
-            <ArrowRight size={18} />
+          <div className="v3-card-footer">
+            <div className="v3-agent-info">
+              <div className="v3-agent-avatar">
+                <User size={14} />
+              </div>
+              <span className="v3-agent-name">
+                {property.fullName || 'Real Properties'}
+              </span>
+            </div>
+            <button className="v3-view-btn">
+              View Details <ArrowRight size={14} />
+            </button>
           </div>
         </div>
       </motion.article>
     );
   };
 
+  const PropertySkeleton = () => (
+    <div className="v3-skeleton-card">
+      <div className="v3-skeleton-image skeleton-box" />
+      <div className="v3-skeleton-body">
+        <div className="v3-skeleton-badge skeleton-box" />
+        <div className="v3-skeleton-price skeleton-box" />
+        <div className="v3-skeleton-line long skeleton-box" />
+        <div className="v3-skeleton-line mid skeleton-box" />
+        <div className="v3-skeleton-footer">
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            <div className="v3-skeleton-avatar skeleton-box" />
+            <div className="v3-skeleton-line short skeleton-box" style={{ width: '60px', marginBottom: 0 }} />
+          </div>
+          <div className="v3-skeleton-line short skeleton-box" style={{ width: '80px', marginBottom: 0 }} />
+        </div>
+      </div>
+    </div>
+  );
+
 
   if (loading) {
     return (
-      <div className="fullscreen-center">
-        <div>
-          <Loader2 className="spinner" size={42} />
-          <p className="loading-text">Loading the property collection</p>
+      <div className="catalog-section">
+        <div className="section-container">
+          <div className="v2-header-stack" style={{ opacity: 0.5 }}>
+            <span className="section-eyebrow"><Building2 size={14} /> Live Inventory</span>
+            <h2 className="v2-title-xl">Finding the best properties for you...</h2>
+          </div>
+          <div className="properties-grid" style={{ marginTop: '2rem' }}>
+            {[1, 2, 3, 4, 5, 6].map(i => <PropertySkeleton key={i} />)}
+          </div>
         </div>
       </div>
     );

@@ -172,9 +172,9 @@ const LandingPage = () => {
     >
       <Navbar onExplore={handleScrollToProperties} />
       <div id="home"><HeroSection onExplore={handleScrollToProperties} onSearch={handleSearch} /></div>
-      <div id="features"><FeaturesSection /></div>
-      <div id="network"><NetworkSection /></div>
       <div id="properties"><PropertiesPage heroSearchTerm={heroSearch} /></div>
+      <div id="network"><NetworkSection /></div>
+      <div id="features"><FeaturesSection /></div>
       <div id="contact"><AppDownloadSection /><Footer /></div>
 
       {/* Floating subscription badge — hidden when already subscribed */}

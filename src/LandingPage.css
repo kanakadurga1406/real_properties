@@ -1053,7 +1053,8 @@ p {
 }
 
 .carousel-image,
-.carousel-wrapper img {
+.carousel-wrapper img,
+.carousel-shell img {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -1118,19 +1119,34 @@ p {
   padding: 1.2rem;
 }
 
+.property-type-highlight {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary-strong);
+  background: var(--primary-soft);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--radius-pill);
+  margin-bottom: 0.8rem;
+}
+
 .zillow-price {
   font-family: var(--font-heading);
-  font-size: 1.55rem;
+  font-size: 1.6rem;
   font-weight: 800;
+  line-height: 1.1;
 }
 
 .zillow-address {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 0.45rem;
-  margin-top: 0.65rem;
+  margin-top: 0.45rem;
   color: var(--text-soft);
-  font-size: 0.98rem;
+  font-size: 0.92rem;
+  line-height: 1.4;
 }
 
 .zillow-specs {
@@ -1875,7 +1891,6 @@ body.modal-open {
   }
 
   .catalog-toolbar,
-  .property-grid,
   .v2-feature-stack,
   .v2-benefits-row,
   .form-grid-2,
@@ -2020,6 +2035,11 @@ input[type="file"]::file-selector-button:active {
   flex-direction: column;
   align-items: flex-end;
   gap: 0.75rem;
+}
+
+/* Hide floating badge when modal is open to prevent overlapping UI on mobile */
+body.modal-open .sub-float-root {
+  display: none !important;
 }
 
 /* Expandable mini-panel */
@@ -2822,5 +2842,327 @@ input[type="file"]::file-selector-button:active {
 @media (max-width: 768px) {
   .contact-actions > div {
     grid-template-columns: 1fr !important;
+  }
+}
+
+/* --- V3 Property Card Redesign --- */
+.v3-property-card {
+  background: var(--surface-strong);
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  box-shadow: 0 12px 36px rgba(0,0,0,0.06);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+}
+
+.v3-property-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 24px 48px rgba(191, 122, 43, 0.15);
+  border-color: var(--primary-soft);
+}
+
+.v3-image-frame {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  overflow: hidden;
+  background: #e2dcd3;
+}
+
+.v3-image-frame .carousel-shell {
+  height: 100%;
+  width: 100%;
+}
+
+.v3-top-badges {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.v3-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  backdrop-filter: blur(12px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  white-space: nowrap;
+}
+
+.v3-status-badge.approved {
+  background: rgba(46, 125, 79, 0.9);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.v3-status-badge.unverified {
+  background: rgba(234, 179, 8, 0.9);
+  color: #fff;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+
+.v3-image-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, transparent 40%, rgba(0,0,0,0.05) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+.v3-card-body {
+  padding: 1.4rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.v3-type-highlight {
+  align-self: flex-start;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--primary);
+  background: var(--primary-soft);
+  padding: 0.3rem 0.65rem;
+  border-radius: 6px;
+  margin-bottom: 0.75rem;
+}
+
+.v3-price-row {
+  margin-bottom: 0.4rem;
+}
+
+.v3-price {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.v3-location {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-soft);
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 1.1rem;
+}
+
+.v3-location svg {
+  color: var(--primary);
+}
+
+.v3-key-metrics {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px dashed var(--line-strong);
+}
+
+.v3-metric {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.v3-metric svg {
+  color: var(--accent);
+}
+
+.v3-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.85rem;
+}
+
+.v3-tag {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  padding: 0.35rem 0.65rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.v3-description {
+  font-size: 0.82rem;
+  color: var(--text-soft);
+  line-height: 1.5;
+  margin-bottom: 1.2rem;
+  flex: 1;
+}
+
+.v3-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  margin-top: auto;
+}
+
+.v3-agent-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.v3-agent-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+}
+
+.v3-agent-name {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.v3-view-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: var(--primary);
+  cursor: pointer;
+}
+.v3-view-btn svg {
+  transition: transform 0.2s ease;
+}
+.v3-property-card:hover .v3-view-btn svg {
+  transform: translateX(4px);
+}
+
+/* --- Skeleton Loading States --- */
+.skeleton-box {
+  background: var(--surface-strong);
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.skeleton-box::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite linear;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.v3-skeleton-card {
+  background: var(--surface-strong);
+  border-radius: 24px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  min-height: 400px;
+}
+
+.v3-skeleton-image {
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  background: var(--surface);
+}
+
+.v3-skeleton-body {
+  padding: 1.4rem;
+}
+
+.v3-skeleton-line {
+  height: 0.8rem;
+  margin-bottom: 0.75rem;
+  background: var(--surface);
+  border-radius: 4px;
+}
+
+.v3-skeleton-price {
+  height: 2rem;
+  width: 50%;
+  margin: 0.5rem 0 1rem;
+  background: var(--surface);
+  border-radius: 6px;
+}
+
+.v3-skeleton-badge {
+  height: 1.2rem;
+  width: 30%;
+  margin-bottom: 1rem;
+  background: var(--surface);
+  border-radius: 6px;
+}
+
+.v3-skeleton-footer {
+  margin-top: auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.v3-skeleton-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--surface);
+}
+
+.project-skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.5rem;
+  padding: 1rem 0;
+}
+
+@media (max-width: 768px) {
+  .v3-skeleton-card {
+    min-height: 350px;
   }
 }

@@ -78,10 +78,10 @@ const NetworkSection = () => {
         <div className="v2-header-stack" style={{ textAlign: 'center', alignItems: 'center' }}>
           <span className="section-eyebrow">
             <Building2 size={14} />
-            Partner Network
+            Projects
           </span>
           <h2 className="v2-title-xl">
-            Explore our trusted ecosystem.
+            Explore our current projects.
           </h2>
           <p className="v2-p-lg section-subcopy" style={{ maxWidth: '800px', margin: '1rem auto' }}>
             Discover our core development projects, high-value investment opportunities, and the prestigious clients we work with.
@@ -125,9 +125,16 @@ const NetworkSection = () => {
         {/* Content area */}
         <div style={{ minHeight: '300px' }}>
           {loading ? (
-            <div className="fullscreen-center" style={{ minHeight: '200px' }}>
-              <Loader2 className="spinner" size={32} color="var(--accent)" />
-              <p style={{ marginTop: '1rem', color: 'var(--text-soft)' }}>Loading network data...</p>
+            <div className="project-skeleton-grid">
+              {[1, 2, 3].map(i => (
+                <div key={i} className="v3-skeleton-card" style={{ minHeight: '300px' }}>
+                  <div className="v3-skeleton-image skeleton-box" style={{ aspectRatio: '16/10' }} />
+                  <div className="v3-skeleton-body">
+                    <div className="v3-skeleton-line long skeleton-box" />
+                    <div className="v3-skeleton-line mid skeleton-box" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : currentItems.length === 0 ? (
             <div className="empty-state" style={{ margin: '0 auto', maxWidth: '600px' }}>

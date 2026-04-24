@@ -4,9 +4,9 @@ import { Building2, LogOut, Menu, Moon, Plus, Sun, User, X } from 'lucide-react'
 
 const navLinks = [
   { name: 'Home', id: 'home' },
-  { name: 'Why Us', id: 'features' },
-  { name: 'Partners', id: 'network' },
   { name: 'Listings', id: 'properties' },
+  { name: 'Projects', id: 'network' },
+  { name: 'Why Us', id: 'features' },
   { name: 'Contact', id: 'contact' }
 ];
 
