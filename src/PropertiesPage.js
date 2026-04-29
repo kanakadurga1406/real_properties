@@ -291,7 +291,7 @@ function PropertiesPage({ heroSearchTerm = '' }) {
     return () => document.body.classList.remove('modal-open');
   }, [selectedProperty]);
 
-  // Logic to determine contact phone number: Referrer for verified, Poster for unverified
+  // Logic to determine contact phone number: Direct property poster
   useEffect(() => {
     const updateContactInfo = async () => {
       if (!selectedProperty) {
@@ -301,34 +301,15 @@ function PropertiesPage({ heroSearchTerm = '' }) {
 
       setIsFetchingPhone(true);
       try {
-        if (selectedProperty.isApproved) {
-          // For verified properties, fetch the referrer's details
-          const res = await fetch(`${CONFIG.API_BASE_URL}/properties/getreqreff/${selectedProperty.PostedBy}`);
-          if (res.ok) {
-            const data = await res.json();
-            if (data.phone) {
-              setContactPhone(String(data.phone).replace(/\s/g, ''));
-              setContactName(data.name || 'Real Properties');
-            } else {
-              setContactPhone(CONFIG.SUPPORT_PHONE.replace(/\s/g, ''));
-              setContactName('Real Properties');
-            }
-          } else {
-            setContactPhone(CONFIG.SUPPORT_PHONE.replace(/\s/g, ''));
-            setContactName('Real Properties');
-          }
+        const posterMobile = selectedProperty.mobile || selectedProperty.PostedBy;
+        setContactName(selectedProperty.fullName || 'Poster');
+        if (posterMobile) {
+          setContactPhone(String(posterMobile).replace(/\s/g, ''));
         } else {
-          // For unverified properties, use the poster's details
-          const posterMobile = selectedProperty.mobile || selectedProperty.PostedBy;
-          setContactName(selectedProperty.fullName || 'Poster');
-          if (posterMobile) {
-            setContactPhone(String(posterMobile).replace(/\s/g, ''));
-          } else {
-            setContactPhone(CONFIG.SUPPORT_PHONE.replace(/\s/g, ''));
-          }
+          setContactPhone(CONFIG.SUPPORT_PHONE.replace(/\s/g, ''));
         }
       } catch (err) {
-        console.warn('Error fetching contact info:', err);
+        console.warn('Error setting contact info:', err);
         setContactPhone(CONFIG.SUPPORT_PHONE.replace(/\s/g, ''));
       } finally {
         setIsFetchingPhone(false);
