@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import {
   AlertCircle,
   ArrowRight,
+  ArrowDown,
   ArrowUpDown,
   BadgeCheck,
   Building2,
@@ -501,7 +502,11 @@ function PropertiesPage({ heroSearchTerm = '' }) {
 
   const visibleProperties = filteredProperties.slice(0, visibleCount);
 
-  const PropertyCard = ({ property }) => {
+  const newestProperties = useMemo(() => {
+    return allProperties.slice(0, 5);
+  }, [allProperties]);
+
+  const PropertyCard = ({ property, isNewest = false }) => {
     const propertyImages = getAllImages(property);
     const dd = property.dynamicData || {};
     const bhk = dd.bhk || '';
@@ -521,6 +526,12 @@ function PropertiesPage({ heroSearchTerm = '' }) {
               {property.isApproved ? <BadgeCheck size={14} /> : <AlertCircle size={14} />}
               {property.isApproved ? 'Approved' : 'Unverified'}
             </div>
+            {isNewest && (
+              <div className="newest-badge-pulse">
+                <Sparkles size={11} />
+                <span>Just Added</span>
+              </div>
+            )}
           </div>
           
           {/* Subtle gradient overlay for image */}
@@ -618,7 +629,7 @@ function PropertiesPage({ heroSearchTerm = '' }) {
             <span className="section-eyebrow"><Building2 size={14} /> Live Inventory</span>
             <h2 className="v2-title-xl">Finding the best properties for you...</h2>
           </div>
-          <div className="properties-grid" style={{ marginTop: '2rem' }}>
+          <div className="property-grid" style={{ marginTop: '2rem' }}>
             {[1, 2, 3, 4, 5, 6].map(i => <PropertySkeleton key={i} />)}
           </div>
         </div>
@@ -640,7 +651,43 @@ function PropertiesPage({ heroSearchTerm = '' }) {
   return (
     <div className="catalog-section">
       <div className="section-container">
-        <div className="v2-header-stack">
+        {/* View All Listings Button Above Newest Listings */}
+        <div className="newest-top-cta-row">
+          <button 
+            className="newest-view-all-cta"
+            onClick={() => {
+              document.getElementById('all-listings-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }}
+          >
+            View All Listings <ArrowDown size={14} className="arrow-down-icon" />
+          </button>
+        </div>
+
+        {/* Newest Listings Section */}
+        {newestProperties.length > 0 && (
+          <div className="newest-section-wrapper">
+            <div className="newest-header-stack">
+              <span className="newest-eyebrow">
+                <Sparkles size={13} className="newest-header-sparkle" />
+                Just Landed
+              </span>
+              <h2 className="newest-section-title text-gradient">Our Newest Listings</h2>
+              <p className="newest-section-subtitle">
+                Be the first to explore the latest residential and commercial properties fresh on the Telugu market.
+              </p>
+            </div>
+            
+            <div className="newest-properties-grid">
+              {newestProperties.map((property) => (
+                <PropertyCard key={`newest-${property._id}`} property={property} isNewest={true} />
+              ))}
+            </div>
+            
+            <div className="newest-divider" />
+          </div>
+        )}
+
+        <div id="all-listings-section" className="v2-header-stack">
           <span className="section-eyebrow">
             <Building2 size={14} />
             Live Inventory

@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
-import HeroSection from './components/HeroSection';
 import FeaturesSection from './components/FeaturesSection';
 import AppDownloadSection from './components/AppDownloadSection';
 import NetworkSection from './components/NetworkSection';
@@ -171,7 +170,6 @@ const LandingPage = () => {
       className="landing-container"
     >
       <Navbar onExplore={handleScrollToProperties} />
-      <div id="home"><HeroSection onExplore={handleScrollToProperties} onSearch={handleSearch} /></div>
       <div id="properties"><PropertiesPage heroSearchTerm={heroSearch} /></div>
       <div id="network"><NetworkSection /></div>
       <div id="features"><FeaturesSection /></div>
