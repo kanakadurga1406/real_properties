@@ -1,8 +1,4 @@
 User-agent: *
 Allow: /
 
-# Sitemap
-Sitemap: https://realproperties.wealthassociate.in/sitemap.xml
-
-# Crawl delay for bots
-Crawl-delay: 5
+Sitemap: https://www.realproperties.in/sitemap.xml

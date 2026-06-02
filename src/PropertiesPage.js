@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   AlertCircle,
@@ -100,6 +101,7 @@ const ImageCarousel = ({ images, altText }) => {
 };
 
 function PropertiesPage({ heroSearchTerm = '' }) {
+  const navigate = useNavigate();
   const [approvedProperties, setApprovedProperties] = useState([]);
   const [communityProperties, setCommunityProperties] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -517,7 +519,7 @@ function PropertiesPage({ heroSearchTerm = '' }) {
     ].filter(Boolean);
 
     return (
-      <motion.article layout whileHover={{ y: -6 }} className="v3-property-card" onClick={() => setSelectedProperty(property)}>
+      <motion.article layout whileHover={{ y: -6 }} className="v3-property-card" onClick={() => navigate(`/property/${property._id}`)}>
         <div className="v3-image-frame">
           <ImageCarousel images={propertyImages} altText={property.location || 'Property'} />
           

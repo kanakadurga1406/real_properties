@@ -4,7 +4,7 @@ import { Building2, LogOut, Menu, Moon, Plus, Sun, User, X } from 'lucide-react'
 
 const navLinks = [
   { name: 'Home', id: 'home' },
-  { name: 'Listings', id: 'properties' },
+  { name: 'Listings', id: 'all-listings-section' },
   { name: 'Projects', id: 'network' },
   { name: 'Why Us', id: 'features' },
   { name: 'Contact', id: 'contact' }
@@ -39,11 +39,20 @@ const Navbar = ({ onExplore, hidePostBtn = false }) => {
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 18);
-      const sections = ['contact', 'properties', 'network', 'features', 'home'];
+      
+      // If we're at the very top, highlight Home
+      if (window.scrollY < 100) {
+        setActiveTab('home');
+        return;
+      }
+
+      // Check sections from bottom to top
+      const sections = ['contact', 'features', 'network', 'all-listings-section'];
       const current = sections.find((id) => {
         const element = document.getElementById(id);
-        return element && window.scrollY >= element.offsetTop - 180;
+        return element && element.getBoundingClientRect().top <= 250;
       });
+      
       if (current) {
         setActiveTab(current);
       }
@@ -62,9 +71,13 @@ const Navbar = ({ onExplore, hidePostBtn = false }) => {
   };
 
   const handleNavClick = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    if (id === 'home') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+    }
     setMobileMenuOpen(false);
-    if (id === 'properties' && onExplore) {
+    if (id === 'all-listings-section' && onExplore) {
       onExplore();
     }
   };
@@ -106,7 +119,14 @@ const Navbar = ({ onExplore, hidePostBtn = false }) => {
                 onClick={() => handleNavClick(link.id)}
                 className={`nav-link ${activeTab === link.id ? 'active' : ''}`}
               >
-                {activeTab === link.id && <motion.div layoutId="nav-indicator" className="nav-link-indicator" />}
+                {activeTab === link.id && (
+                  <motion.div 
+                    initial={{ opacity: 0, scale: 0.85 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.2 }}
+                    className="nav-link-indicator" 
+                  />
+                )}
                 <span style={{ position: 'relative', zIndex: 1 }}>{link.name}</span>
               </motion.button>
             ))}
