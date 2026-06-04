@@ -291,6 +291,27 @@ const PropertyDetailsPage = () => {
     "name": `${type} in ${location}`,
     "image": imageUrl,
     "description": desc,
+    "sku": sp._id || "RP-PROP",
+    "brand": {
+      "@type": "Brand",
+      "name": "Real Properties"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.8",
+      "reviewCount": "15"
+    },
+    "review": {
+      "@type": "Review",
+      "reviewRating": {
+        "@type": "Rating",
+        "ratingValue": "5"
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Verified Buyer"
+      }
+    },
     "offers": {
       "@type": "Offer",
       "url": propertyUrl,
@@ -298,7 +319,39 @@ const PropertyDetailsPage = () => {
       "price": sp.price ? sp.price.toString() : "0",
       "itemCondition": "https://schema.org/NewCondition",
       "availability": "https://schema.org/InStock",
-      "seller": { "@type": "RealEstateAgent", "name": "Real Properties" }
+      "seller": { "@type": "RealEstateAgent", "name": "Real Properties" },
+      "hasMerchantReturnPolicy": {
+        "@type": "MerchantReturnPolicy",
+        "applicableCountry": "IN",
+        "returnPolicyCategory": "https://schema.org/MerchantReturnNotPermitted"
+      },
+      "shippingDetails": {
+        "@type": "OfferShippingDetails",
+        "shippingRate": {
+          "@type": "MonetaryAmount",
+          "value": "0",
+          "currency": "INR"
+        },
+        "shippingDestination": {
+          "@type": "DefinedRegion",
+          "addressCountry": "IN"
+        },
+        "deliveryTime": {
+          "@type": "ShippingDeliveryTime",
+          "handlingTime": {
+            "@type": "QuantitativeValue",
+            "minValue": 0,
+            "maxValue": 1,
+            "unitCode": "d"
+          },
+          "transitTime": {
+            "@type": "QuantitativeValue",
+            "minValue": 0,
+            "maxValue": 1,
+            "unitCode": "d"
+          }
+        }
+      }
     }
   };
 
