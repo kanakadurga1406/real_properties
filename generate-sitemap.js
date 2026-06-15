@@ -74,10 +74,26 @@ async function generateSitemap() {
   <!-- Dynamic Property Pages -->
 `;
 
+    // Helper to generate SEO friendly URLs exactly like the frontend
+    const generateSeoSlug = (property) => {
+      if (!property || !property._id) return '';
+      const id = property._id;
+      const name = property.propertyType || property.Category || 'property';
+      const loc = property.location || property.district || property.City || 'india';
+      
+      const cleanStr = `${name} in ${loc}`
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/(^-|-$)/g, '');
+        
+      return `${cleanStr}-${id}`;
+    };
+
     for (const prop of allProperties) {
       if (prop._id) {
+        const seoSlug = generateSeoSlug(prop);
         xml += `  <url>\n`;
-        xml += `    <loc>${DOMAIN}/property/${prop._id}</loc>\n`;
+        xml += `    <loc>${DOMAIN}/property/${seoSlug}</loc>\n`;
         xml += `    <lastmod>${today}</lastmod>\n`;
         xml += `    <changefreq>weekly</changefreq>\n`;
         xml += `    <priority>0.8</priority>\n`;
