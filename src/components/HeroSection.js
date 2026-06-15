@@ -1,180 +1,213 @@
-import React, { useEffect, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowRight, BadgeCheck, Grid, Layers, MapPin, Search, ShieldCheck, Sparkles, TrendingUp } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Search, MapPin, Building2, IndianRupee, Maximize, Home, ShieldCheck, Users, ChevronRight } from 'lucide-react';
+import './HeroSection.css';
+import CONFIG from '../config';
 
-const heroImages = [
-  'https://images.unsplash.com/photo-1600607687644-c7171b42498f?auto=format&fit=crop&w=1800&q=80',
-  'https://images.unsplash.com/photo-1605146769289-440113cc3d00?auto=format&fit=crop&w=1800&q=80',
-  'https://images.unsplash.com/photo-1511818966892-d7d671e672a2?auto=format&fit=crop&w=1800&q=80'
-];
-
-const highlights = [
-  {
-    icon: <ShieldCheck size={16} />,
-    title: 'Legal Clearance',
-    copy: 'Every official project undergoes thorough legal vetting for peace of mind.'
-  },
-  {
-    icon: <TrendingUp size={16} />,
-    title: 'High ROI Potential',
-    copy: 'Strategic locations in growth corridors ensure maximum appreciation for your investment.'
-  },
-  {
-    icon: <BadgeCheck size={16} />,
-    title: 'Verified Owners',
-    copy: 'Direct interaction with authentic owners and developers reduces middleman friction.'
-  }
-];
+// Cityscape at dusk image
+const heroImage = 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?auto=format&fit=crop&w=1800&q=80';
 
 const HeroSection = ({ onExplore, onSearch }) => {
-  const [searchValue, setSearchValue] = useState('');
-  const [currentIdx, setCurrentIdx] = useState(0);
-  const [isFocused, setIsFocused] = useState(false);
+  const [location, setLocation] = useState('');
+  const [propertyType, setPropertyType] = useState('');
+  const [budget, setBudget] = useState('');
+  const [area, setArea] = useState('');
+
+  const [stats, setStats] = useState({
+    properties: '10,000+',
+    projects: '150+',
+    customers: '2,500+'
+  });
 
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentIdx((prev) => (prev + 1) % heroImages.length);
-    }, 5500);
-    return () => clearInterval(timer);
+    const fetchStats = async () => {
+      try {
+        const [propRes, custRes, coreRes, valueRes, wealthRes] = await Promise.all([
+          fetch(`${CONFIG.API_BASE_URL}/count/total-approvedproperties`),
+          fetch(`${CONFIG.API_BASE_URL}/count/total-customers`),
+          fetch(`${CONFIG.API_BASE_URL}/coreproject/getallcoreprojects`),
+          fetch(`${CONFIG.API_BASE_URL}/coreproject/getallValueprojects`),
+          fetch(`${CONFIG.API_BASE_URL}/coreproject/getallWealthprojects`)
+        ]);
+        
+        const propData = await propRes.json();
+        const custData = await custRes.json();
+        
+        const coreData = coreRes.ok ? await coreRes.json() : [];
+        const valueData = valueRes.ok ? await valueRes.json() : [];
+        const wealthData = wealthRes.ok ? await wealthRes.json() : [];
+
+        const totalProjects = (Array.isArray(coreData) ? coreData.length : 0) +
+                              (Array.isArray(valueData) ? valueData.length : 0) +
+                              (Array.isArray(wealthData) ? wealthData.length : 0);
+        
+        setStats({
+          properties: propData.totalAgents ? `${propData.totalAgents}+` : '0',
+          projects: totalProjects > 0 ? `${totalProjects}+` : '0', 
+          customers: custData.totalAgents ? `${custData.totalAgents}+` : '0'
+        });
+      } catch (err) {
+        console.error('Failed to fetch hero stats:', err);
+      }
+    };
+    fetchStats();
   }, []);
 
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    const trimmed = searchValue.trim();
-    if (trimmed) {
-      onSearch(trimmed);
-      return;
+  const handleSearch = (e) => {
+    e.preventDefault();
+    const queryParts = [location, propertyType, budget, area].filter(Boolean);
+    const query = queryParts.join(' ');
+    if (query) {
+      onSearch(query);
+    } else {
+      onExplore();
     }
-    onExplore();
+  };
+
+  const handlePillClick = (loc) => {
+    onSearch(loc);
   };
 
   return (
-    <section id="home" className="hero-section">
-      <div className="section-container">
-        <div className="hero-shell">
-          <div className="hero-visual-layer">
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentIdx}
-                className="hero-bg-frame"
-                style={{ backgroundImage: `url(${heroImages[currentIdx]})` }}
-                initial={{ opacity: 0, scale: 1.05 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
-                transition={{ duration: 1.4, ease: 'easeOut' }}
-              />
-            </AnimatePresence>
-            <div className="hero-overlay-depth" />
+    <section id="home" className="hero-section-new">
+      <div className="hero-bg-new" style={{ backgroundImage: `url(${heroImage})` }}>
+        <div className="hero-overlay-new"></div>
+      </div>
+
+      <div className="hero-content-new section-container">
+        <motion.div
+          className="hero-text-left"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
+        >
+          <h1 className="hero-title-new">
+            Find Verified Properties<br />
+            Across <span className="hero-highlight-new">AP & TS</span>
+          </h1>
+          <p className="hero-subtitle-new">Buy &bull; Sell &bull; Invest</p>
+        </motion.div>
+
+        <motion.div
+          className="hero-search-wrapper"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, delay: 0.1 }}
+        >
+          <form className="hero-search-bar" onSubmit={handleSearch}>
+            <div className="search-field">
+              <div className="field-icon"><MapPin size={20} /></div>
+              <div className="field-inputs">
+                <label>Location</label>
+                <select value={location} onChange={(e) => setLocation(e.target.value)}>
+                  <option value="">Select Location</option>
+                  <option value="Vijayawada">Vijayawada</option>
+                  <option value="Guntur">Guntur</option>
+                  <option value="Visakhapatnam">Visakhapatnam</option>
+                </select>
+              </div>
+            </div>
+            
+            <div className="field-divider"></div>
+
+            <div className="search-field">
+              <div className="field-icon"><Building2 size={20} /></div>
+              <div className="field-inputs">
+                <label>Property Type</label>
+                <select value={propertyType} onChange={(e) => setPropertyType(e.target.value)}>
+                  <option value="">Select Type</option>
+                  <option value="House">House</option>
+                  <option value="Apartment">Apartment</option>
+                  <option value="Land">Land</option>
+                  <option value="Villa">Villa</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="field-divider"></div>
+
+            <div className="search-field">
+              <div className="field-icon"><IndianRupee size={20} /></div>
+              <div className="field-inputs">
+                <label>Budget</label>
+                <select value={budget} onChange={(e) => setBudget(e.target.value)}>
+                  <option value="">Select Budget</option>
+                  <option value="Under 20 Lakhs">Under 20 Lakhs</option>
+                  <option value="20 - 50 Lakhs">20 - 50 Lakhs</option>
+                  <option value="50 Lakhs - 1 Crore">50 Lakhs - 1 Crore</option>
+                  <option value="Above 1 Crore">Above 1 Crore</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="field-divider"></div>
+
+            <div className="search-field">
+              <div className="field-icon"><Maximize size={20} /></div>
+              <div className="field-inputs">
+                <label>Area</label>
+                <select value={area} onChange={(e) => setArea(e.target.value)}>
+                  <option value="">Select Area</option>
+                  <option value="Under 1000 sqft">Under 1000 sqft</option>
+                  <option value="1000 - 2000 sqft">1000 - 2000 sqft</option>
+                  <option value="Above 2000 sqft">Above 2000 sqft</option>
+                </select>
+              </div>
+            </div>
+
+            <button type="submit" className="search-submit-btn">
+              <Search size={18} />
+              Search Properties
+            </button>
+          </form>
+
+          <div className="popular-searches">
+            <span>Popular Searches:</span>
+            <div className="search-pills">
+              {['Gannavaram', 'Poranki', 'Mangalagiri', 'Benz Circle', 'Tadigadapa', 'Kankipadu', 'Gudivada'].map(loc => (
+                <button key={loc} type="button" className="pill-btn" onClick={() => handlePillClick(loc)}>
+                  {loc}
+                </button>
+              ))}
+              <button type="button" className="pill-btn icon-only" onClick={onExplore}>
+                <ChevronRight size={16} />
+              </button>
+            </div>
           </div>
+        </motion.div>
+      </div>
 
-          <div className="hero-content">
-            <motion.div
-              className="hero-copy-panel"
-              initial={{ opacity: 0, y: 28 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.65, ease: 'easeOut' }}
-            >
-
-
-              <div className="hero-badge-actions">
-                <button className="hero-badge-btn" onClick={onExplore}>
-                  <Grid size={14} />
-                  View All Listing Properties
-                </button>
-                <button className="hero-badge-btn" onClick={() => document.getElementById('network')?.scrollIntoView({ behavior: 'smooth' })}>
-                  <Layers size={14} />
-                  View All Projects
-                </button>
-              </div>
-
-              <h1 className="hero-title">
-                Connecting you to verified property opportunities across Telugu States.
-              </h1>
-
-              <p className="hero-subtitle">
-                Browse premium plots, villas, and apartments with full legal clearance and transparent pricing. 
-                Post your own listings and reach thousands of verified buyers through our trusted platform.
-              </p>
-
-              <form className={`hero-command-center ${isFocused ? 'focused' : ''}`} onSubmit={handleSubmit}>
-                <div className="command-icon">
-                  <MapPin size={18} />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search by locality, district, landmark, or property type"
-                  value={searchValue}
-                  onChange={(event) => setSearchValue(event.target.value)}
-                  onFocus={() => setIsFocused(true)}
-                  onBlur={() => setIsFocused(false)}
-                />
-                <button type="submit" className="btn-primary command-btn">
-                  <Search size={16} />
-                  Search Now
-                </button>
-              </form>
-
-              <div className="hero-cta-row">
-                <button type="button" className="btn-outline" onClick={onExplore}>
-                  Explore Listings
-                  <ArrowRight size={16} />
-                </button>
-              </div>
-
-              <div className="hero-spatial-stats">
-                {[
-                  { value: '500+', label: 'Verified Listings' },
-                  { value: '10k+', label: 'Registered Buyers' },
-                  { value: '24/7', label: 'Support Available' }
-                ].map((item) => (
-                  <div key={item.label} className="spatial-stat-item">
-                    <span className="stat-val">{item.value}</span>
-                    <span className="stat-label">{item.label}</span>
-                  </div>
-                ))}
-              </div>
-            </motion.div>
-
-            <motion.aside
-              className="hero-side-panel"
-              initial={{ opacity: 0, y: 36 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.12, ease: 'easeOut' }}
-            >
-              <h3 className="hero-side-headline">The Real Properties Advantage</h3>
-              <p className="hero-side-copy">
-                We simplify the real estate journey by providing cleared titles, market insights, and direct connections 
-                between owners and serious buyers across key growth corridors.
-              </p>
-
-              <div className="hero-highlights">
-                {highlights.map((item) => (
-                  <div key={item.title} className="hero-highlight">
-                    <div className="hero-highlight-bullet">{item.icon}</div>
-                    <div>
-                      <h4>{item.title}</h4>
-                      <p>{item.copy}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="hero-trust-strip">
-                {[
-                  ['Inventory', 'Plots, villas, apartments'],
-                  ['Locations', 'Andhra, Telangana, Bengaluru'],
-                  ['Trust', 'Legal clearance guaranteed'],
-                  ['Support', 'Direct inquiry ready']
-                ].map(([label, value]) => (
-                  <div key={label} className="trust-chip">
-                    <span className="trust-chip-label">{label}</span>
-                    <span className="trust-chip-value">{value}</span>
-                  </div>
-                ))}
-              </div>
-            </motion.aside>
+      <div className="hero-stats-wrapper section-container">
+        <motion.div 
+          className="hero-stats-card"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        >
+          <div className="stat-block">
+            <div className="stat-icon-wrap"><Home size={24} /></div>
+            <div className="stat-text">
+              <h4>{stats.properties}</h4>
+              <p>Properties Listed</p>
+            </div>
           </div>
-        </div>
+          <div className="stat-divider"></div>
+          <div className="stat-block">
+            <div className="stat-icon-wrap"><Building2 size={24} /></div>
+            <div className="stat-text">
+              <h4>{stats.projects}</h4>
+              <p>Projects</p>
+            </div>
+          </div>
+          <div className="stat-divider"></div>
+          <div className="stat-block">
+            <div className="stat-icon-wrap"><Users size={24} /></div>
+            <div className="stat-text">
+              <h4>{stats.customers}</h4>
+              <p>Happy Customers</p>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </section>
   );

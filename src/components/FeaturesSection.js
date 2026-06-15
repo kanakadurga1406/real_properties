@@ -61,13 +61,6 @@ const FeaturesSection = () => {
             <Sparkles size={14} />
             Services Overview
           </span>
-          <h2 className="v2-title-xl">
-            Comprehensive real estate solutions for buyers and owners.
-          </h2>
-          <p className="v2-p-lg section-subcopy">
-            From discovering your dream plot to managing your property portfolio, our platform provides 
-            the tools and insights you need for a secure and transparent transaction.
-          </p>
         </div>
 
         <div className="v2-feature-stack">

@@ -1,0 +1,183 @@
+/* --- OLX Property Card Redesign --- */
+.property-grid.olx-properties-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 16px !important;
+}
+
+@media (max-width: 1100px) {
+  .property-grid.olx-properties-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .property-grid.olx-properties-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .property-grid.olx-properties-grid {
+    display: flex !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory;
+    gap: 16px !important;
+    padding-bottom: 12px !important;
+    scrollbar-width: none; /* Firefox */
+  }
+  .property-grid.olx-properties-grid::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+  }
+  .property-grid.olx-properties-grid .olx-card {
+    min-width: 85% !important;
+    scroll-snap-align: center;
+    flex-shrink: 0;
+  }
+}
+
+.olx-card {
+  background: #ffffff;
+  border: 1px solid #ccd5d6;
+  border-radius: 4px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: box-shadow 0.2s ease;
+  position: relative;
+}
+
+.olx-card.featured {
+  border-left: 4px solid #ffce32;
+}
+
+.olx-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+}
+
+.olx-card-image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  position: relative;
+  background: #f2f4f5;
+  box-sizing: border-box;
+}
+
+/* Force carousel to absolutely fill the padded frame without expanding it */
+.olx-card-image .carousel-shell {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  right: 8px;
+  bottom: 8px;
+  width: calc(100% - 16px);
+  height: calc(100% - 16px);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+/* Force image aspect ratio strictly */
+.olx-card-image .carousel-shell img {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.olx-card-heart {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 32px;
+  height: 32px;
+  background: #ffffff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  z-index: 10;
+  transition: transform 0.2s ease;
+}
+
+.olx-card-heart:hover {
+  transform: scale(1.05);
+}
+
+.olx-card-featured-badge {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  background: #ffce32;
+  color: #002f34;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 2px;
+  z-index: 10;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.olx-card-body {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.olx-card-price {
+  font-size: 20px;
+  font-weight: 700;
+  color: #002f34;
+  margin: 0 0 4px 0;
+  font-family: 'Inter Tight', sans-serif;
+  letter-spacing: -0.5px;
+}
+
+.olx-card-title {
+  font-size: 14px;
+  color: #406367;
+  margin: 0 0 4px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.olx-card-desc {
+  font-size: 12px;
+  color: #727e80;
+  margin: 0 0 16px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.olx-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-top: auto;
+}
+
+.olx-card-location {
+  font-size: 10px;
+  color: #727e80;
+  text-transform: uppercase;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 65%;
+}
+
+.olx-card-date {
+  font-size: 10px;
+  color: #727e80;
+  text-transform: uppercase;
+  white-space: nowrap;
+}

@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Navbar from './components/Navbar';
 import FeaturesSection from './components/FeaturesSection';
 import AppDownloadSection from './components/AppDownloadSection';
 import NetworkSection from './components/NetworkSection';
+import QuickActionsSection from './components/QuickActionsSection';
 import Footer from './components/Footer';
 import PropertiesPage from './PropertiesPage';
 import SubscriptionBadge from './components/SubscriptionBadge';
@@ -11,6 +12,7 @@ import PostPropertyModal from './components/PostPropertyModal';
 import AuthModal from './components/AuthModal';
 import { motion } from 'framer-motion';
 import CONFIG from './config';
+import HeroSection from './components/HeroSection';
 import './LandingPage.css';
 
 const LandingPage = () => {
@@ -27,14 +29,14 @@ const LandingPage = () => {
   const [pendingAction, setPendingAction] = useState(null); // 'post' | 'subscribe'
 
   // Floating badge click — auth → sub → post
-  const handleSubscribeClick = () => {
+  const handleSubscribeClick = useCallback(() => {
     if (!currentUser) {
       setPendingAction('subscribe');
       setIsAuthOpen(true);
       return;
     }
     setIsSubOpen(true);
-  };
+  }, [currentUser]);
 
   // Dynamic SEO Setup
   useEffect(() => {
@@ -170,7 +172,9 @@ const LandingPage = () => {
       className="landing-container"
     >
       <Navbar onExplore={handleScrollToProperties} />
-      <div id="properties"><PropertiesPage heroSearchTerm={heroSearch} /></div>
+      <HeroSection onExplore={handleScrollToProperties} onSearch={handleSearch} />
+      <div id="properties" style={{ scrollMarginTop: '130px' }}><PropertiesPage heroSearchTerm={heroSearch} /></div>
+      <QuickActionsSection />
       <div id="network"><NetworkSection /></div>
       <div id="features"><FeaturesSection /></div>
       <div id="contact"><AppDownloadSection /><Footer /></div>

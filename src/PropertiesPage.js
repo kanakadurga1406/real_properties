@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   AlertCircle,
   ArrowRight,
-  ArrowDown,
   ArrowUpDown,
   BadgeCheck,
   Building2,
@@ -19,14 +18,12 @@ import {
   Grid,
   Home,
   Layers,
-  Lock,
   Loader2,
   MapPin,
   MessageCircle,
   Phone,
   PhoneCall,
   Ruler,
-  Search,
   Sparkles,
   Tag,
   Trees,
@@ -35,21 +32,13 @@ import {
 } from 'lucide-react';
 import CONFIG from './config';
 import PostPropertyModal from './components/PostPropertyModal';
+import { parseSearchQuery, matchProperty } from './utils/searchUtils';
+import './components/OLXCards.css';
 import './App.css';
 
 const fallbackImage = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?auto=format&fit=crop&w=1200&q=80';
 
-const propertyTypeOptions = [
-  'All',
-  'FLAT(APARTMENT)',
-  'HOUSE(INDIVIDUAL)',
-  'LAND(OPENSITE)',
-  'COMMERCIAL PROPERTY',
-  'COMMERCIAL LAND',
-  'AGRICULTURE LAND',
-  'PLOT(LAYOUT)',
-  'VILLA',
-];
+// propertyTypeOptions will be derived dynamically
 
 const ImageCarousel = ({ images, altText }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -106,16 +95,14 @@ function PropertiesPage({ heroSearchTerm = '' }) {
   const [communityProperties, setCommunityProperties] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedType, setSelectedType] = useState('All');
+  const [searchParams] = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(searchParams.get('search') || '');
+  const [selectedType, setSelectedType] = useState(searchParams.get('category') || 'All');
   const [selectedProperty, setSelectedProperty] = useState(null);
   const [isPostOpen, setIsPostOpen] = useState(false);
   const [currentUser, setCurrentUser] = useState(null);
-  const [subscription, setSubscription] = useState(null);
   const [visibleCount, setVisibleCount] = useState(6);
-  const [activeCategory, setActiveCategory] = useState('approved');
   const [contactPhone, setContactPhone] = useState(CONFIG.SUPPORT_PHONE);
-  const [contactName, setContactName] = useState('Real Properties');
   const [isFetchingPhone, setIsFetchingPhone] = useState(false);
   const [leadData, setLeadData] = useState(null);
   const [isSubmittingLead, setIsSubmittingLead] = useState(false);
@@ -130,6 +117,13 @@ function PropertiesPage({ heroSearchTerm = '' }) {
       setLeadData(JSON.parse(storedLead));
     }
   }, []);
+
+  // Sync HeroSection search term to PropertiesPage search term
+  useEffect(() => {
+    if (heroSearchTerm) {
+      setSearchTerm(heroSearchTerm);
+    }
+  }, [heroSearchTerm]);
 
   // Reset request state when switching properties
   useEffect(() => {
@@ -196,9 +190,7 @@ function PropertiesPage({ heroSearchTerm = '' }) {
 
   const fetchSubStatus = async (userId) => {
     try {
-      const res = await fetch(`${CONFIG.API_BASE_URL}/realproperties/subscription/status/${userId}`);
-      const data = await res.json();
-      setSubscription(data.hasSubscription ? data.subscription : null);
+      await fetch(`${CONFIG.API_BASE_URL}/realproperties/subscription/status/${userId}`);
     } catch { /* ignore */ }
   };
 
@@ -358,7 +350,6 @@ function PropertiesPage({ heroSearchTerm = '' }) {
       setIsFetchingPhone(true);
       try {
         const posterMobile = selectedProperty.mobile || selectedProperty.PostedBy;
-        setContactName(selectedProperty.fullName || 'Poster');
         if (posterMobile) {
           setContactPhone(String(posterMobile).replace(/\s/g, ''));
         } else {
@@ -391,7 +382,6 @@ function PropertiesPage({ heroSearchTerm = '' }) {
         fetchSubStatus(u.id);
       } else {
         setCurrentUser(null);
-        setSubscription(null);
       }
     };
     const handleSubChange = () => {
@@ -402,11 +392,41 @@ function PropertiesPage({ heroSearchTerm = '' }) {
     window.addEventListener('authChange', handleAuthUpdate);
     window.addEventListener('subscriptionChange', handleSubChange);
 
+    const handlePropertyTypeSelected = (e) => {
+      setSelectedType(e.detail === 'All Properties' ? 'All' : e.detail);
+      const propsSection = document.getElementById('properties');
+      if (propsSection) {
+        propsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    };
+
+    const handleGlobalSearch = (e) => {
+      setSearchTerm(e.detail);
+      const propsSection = document.getElementById('properties');
+      if (propsSection) {
+        propsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    };
+
+    window.addEventListener('propertyTypeSelected', handlePropertyTypeSelected);
+    window.addEventListener('globalSearch', handleGlobalSearch);
+
     return () => {
       window.removeEventListener('authChange', handleAuthUpdate);
       window.removeEventListener('subscriptionChange', handleSubChange);
+      window.removeEventListener('propertyTypeSelected', handlePropertyTypeSelected);
+      window.removeEventListener('globalSearch', handleGlobalSearch);
     };
   }, []);
+
+  useEffect(() => {
+    const q = searchParams.get('search');
+    if (q !== null) setSearchTerm(q);
+    
+    const cat = searchParams.get('category');
+    if (cat !== null) setSelectedType(cat);
+    else setSelectedType('All');
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -465,11 +485,7 @@ function PropertiesPage({ heroSearchTerm = '' }) {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    if (heroSearchTerm) {
-      setSearchTerm(heroSearchTerm);
-    }
-  }, [heroSearchTerm]);
+
 
   const getAllImages = (property) => {
     if (!property) {
@@ -536,123 +552,68 @@ function PropertiesPage({ heroSearchTerm = '' }) {
     ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   }, [approvedProperties, communityProperties]);
 
-  const filteredProperties = useMemo(() => {
-    return allProperties.filter((property) => {
-      // Category filter
-      const matchesCategory = activeCategory === 'approved' ? property.isApproved : !property.isApproved;
 
-      const query = searchTerm.trim().toLowerCase();
-      const matchesSearch = !query
-        ? true
-        : [property.location, property.district, property.propertyType, property.mandal, property.fullName]
-            .filter(Boolean)
-            .some((field) => String(field).toLowerCase().includes(query));
+
+  const filteredProperties = useMemo(() => {
+    const parsedQuery = parseSearchQuery(searchTerm);
+    return allProperties.filter((property) => {
+      const matchesSearch = matchProperty(property, parsedQuery);
 
       const matchesType =
         selectedType === 'All' ? true : String(property.propertyType || '').toLowerCase() === selectedType.toLowerCase();
 
-      return matchesCategory && matchesSearch && matchesType;
+      return matchesType && matchesSearch;
     });
-  }, [allProperties, searchTerm, selectedType, activeCategory]);
+  }, [allProperties, selectedType, searchTerm]);
 
   const visibleProperties = filteredProperties.slice(0, visibleCount);
 
-  const newestProperties = useMemo(() => {
-    return allProperties.slice(0, 5);
-  }, [allProperties]);
-
-  const PropertyCard = ({ property, isNewest = false }) => {
+  const PropertyCard = ({ property }) => {
     const propertyImages = getAllImages(property);
     const dd = property.dynamicData || {};
     const bhk = dd.bhk || '';
     const area = dd.area || (dd.agricultureDetails?.extent) || (dd.plotLocation ? dd.area : '');
-    const specs = [
-      property.propertyType || 'Property',
-      property.Constituency || property.district || '',
-    ].filter(Boolean);
+    
+    // For subtitle (bhk, area, etc)
+    const subtitleParts = [bhk && `${bhk} BHK`, dd.floors ? `${dd.floors} Floors` : '', area].filter(Boolean);
+    const subtitle = subtitleParts.length > 0 ? subtitleParts.join(' - ') : (property.propertyType || 'Property');
+    
+    // For OLX style Date
+    const dateObj = new Date(property.createdAt || Date.now());
+    const now = new Date();
+    const diffDays = Math.floor((now - dateObj) / (1000 * 60 * 60 * 24));
+    let dateStr = '';
+    if (diffDays === 0) dateStr = 'TODAY';
+    else if (diffDays === 1) dateStr = 'YESTERDAY';
+    else if (diffDays < 7) dateStr = `${diffDays} DAYS AGO`;
+    else dateStr = dateObj.toLocaleDateString('en-IN', { month: 'short', day: '2-digit' }).toUpperCase();
+
+    // Limit title
+    let title = property.propertyDetails || property.location || '';
+    if (title.length > 50) title = title.slice(0, 50) + '...';
+
+    // Create SEO-friendly slug
+    const typeStr = (property.propertyType || 'property').replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase();
+    const locStr = (property.location || property.district || 'location').replace(/[^a-zA-Z0-9]+/g, '-').toLowerCase();
+    const seoSlug = `${typeStr}-in-${locStr}-${property._id}`;
 
     return (
-      <motion.article layout whileHover={{ y: -6 }} className="v3-property-card" onClick={() => navigate(`/property/${property._id}`)}>
-        <div className="v3-image-frame">
+      <article className="olx-card" onClick={() => navigate(`/property/${seoSlug}`)}>
+        <div className="olx-card-image">
           <ImageCarousel images={propertyImages} altText={property.location || 'Property'} />
-          
-          <div className="v3-top-badges">
-            <div className={`v3-status-badge ${property.isApproved ? 'approved' : 'unverified'}`}>
-              {property.isApproved ? <BadgeCheck size={14} /> : <AlertCircle size={14} />}
-              {property.isApproved ? 'Approved' : 'Unverified'}
-            </div>
-            {isNewest && (
-              <div className="newest-badge-pulse">
-                <Sparkles size={11} />
-                <span>Just Added</span>
-              </div>
-            )}
-          </div>
-          
-          {/* Subtle gradient overlay for image */}
-          <div className="v3-image-overlay" />
         </div>
 
-        <div className="v3-card-body">
-          <div className="v3-type-highlight">
-            {property.propertyType || 'Property'}
-          </div>
-
-          <div className="v3-price-row">
-            <h3 className="v3-price">{formatPrice(property.price)}</h3>
-          </div>
+        <div className="olx-card-body">
+          <h3 className="olx-card-price">{formatPrice(property.price)}</h3>
+          <p className="olx-card-title">{subtitle}</p>
+          <p className="olx-card-desc">{title}</p>
           
-          <p className="v3-location">
-            <MapPin size={14} strokeWidth={2.5} />
-            {property.location || 'Location unavailable'}
-          </p>
-
-          {(bhk || area) && (
-            <div className="v3-key-metrics">
-              {bhk && (
-                <div className="v3-metric">
-                  <Home size={14} />
-                  <span>{bhk}</span>
-                </div>
-              )}
-              {area && (
-                <div className="v3-metric">
-                  <Ruler size={14} />
-                  <span>{area}</span>
-                </div>
-              )}
-            </div>
-          )}
-
-          {specs.filter(s => s !== (property.propertyType || 'Property')).length > 0 && (
-            <div className="v3-tags">
-              {specs.filter(s => s !== (property.propertyType || 'Property')).map((spec) => (
-                <span key={spec} className="v3-tag">{spec}</span>
-              ))}
-            </div>
-          )}
-
-          {property.propertyDetails && property.propertyDetails !== 'no details' && (
-            <p className="v3-description">
-              {property.propertyDetails.length > 70 ? property.propertyDetails.slice(0, 70) + '…' : property.propertyDetails}
-            </p>
-          )}
-
-          <div className="v3-card-footer">
-            <div className="v3-agent-info">
-              <div className="v3-agent-avatar">
-                <User size={14} />
-              </div>
-              <span className="v3-agent-name">
-                {property.fullName || 'Real Properties'}
-              </span>
-            </div>
-            <button className="v3-view-btn">
-              View Details <ArrowRight size={14} />
-            </button>
+          <div className="olx-card-footer">
+            <span className="olx-card-location">{property.location || property.district || 'Location'}</span>
+            <span className="olx-card-date">{dateStr}</span>
           </div>
         </div>
-      </motion.article>
+      </article>
     );
   };
 
@@ -704,133 +665,14 @@ function PropertiesPage({ heroSearchTerm = '' }) {
   }
 
   return (
-    <div className="catalog-section">
+    <div style={{ paddingTop: '1.5rem', paddingBottom: '2.5rem', overflowX: 'hidden', maxWidth: '100%' }}>
       <div className="section-container">
-        {/* View All Listings Button Above Newest Listings */}
-        <div className="newest-top-cta-row">
-          <button 
-            className="newest-view-all-cta"
-            onClick={() => {
-              document.getElementById('all-listings-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }}
-          >
-            View All Listings <ArrowDown size={14} className="arrow-down-icon" />
-          </button>
-        </div>
-
-        {/* Newest Listings Section */}
-        {newestProperties.length > 0 && (
-          <div className="newest-section-wrapper">
-            <div className="newest-header-stack">
-              <span className="newest-eyebrow">
-                <Sparkles size={13} className="newest-header-sparkle" />
-                Just Landed
-              </span>
-              <h2 className="newest-section-title text-gradient">Our Newest Listings</h2>
-              <p className="newest-section-subtitle">
-                Be the first to explore the latest residential and commercial properties fresh on the Telugu market.
-              </p>
-            </div>
-            
-            <div className="newest-properties-grid">
-              {newestProperties.map((property) => (
-                <PropertyCard key={`newest-${property._id}`} property={property} isNewest={true} />
-              ))}
-            </div>
-            
-            <div className="newest-divider" />
-          </div>
-        )}
-
-        <div id="all-listings-section" className="v2-header-stack">
-          <span className="section-eyebrow">
-            <Building2 size={14} />
-            Live Inventory
-          </span>
-          <h2 className="v2-title-xl">Browse a cleaner, easier-to-trust property catalog.</h2>
-          <p className="v2-p-lg section-subcopy">
-            Search across approved listings and submitted properties in one responsive catalog designed to reduce
-            clutter and improve discovery.
-          </p>
-        </div>
-
-        <div className="catalog-toolbar v2-surface-raised">
-          <div className="catalog-search">
-            <Search size={18} color="var(--accent)" />
-            <input
-              type="text"
-              placeholder="Search locality, district, landmark, or property type"
-              value={searchTerm}
-              onChange={(event) => {
-                setSearchTerm(event.target.value);
-                setVisibleCount(6);
-              }}
-            />
-          </div>
-
-          <div className="catalog-filter">
-            <select
-              value={selectedType}
-              onChange={(event) => {
-                setSelectedType(event.target.value);
-                setVisibleCount(6);
-              }}
-            >
-              {propertyTypeOptions.map((option) => (
-                <option key={option} value={option}>
-                  {option === 'All' ? 'All property types' : option}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <button className="btn-primary" onClick={() => setVisibleCount(6)}>
-            <Filter size={16} />
-            Refine
-          </button>
-        </div>
-
-        <div className="results-bar">
-          <div>
-            <div style={{ display: 'flex', gap: '1rem', marginBottom: '0.8rem' }}>
-              <button 
-                onClick={() => { setActiveCategory('approved'); setVisibleCount(6); }}
-                style={{
-                  padding: '8px 16px', borderRadius: '30px', fontWeight: 'bold', cursor: 'pointer',
-                  border: activeCategory === 'approved' ? 'none' : '1px solid var(--line)',
-                  background: activeCategory === 'approved' ? 'var(--primary)' : 'transparent',
-                  color: activeCategory === 'approved' ? 'white' : 'var(--text-soft)'
-                }}
-              >
-                Verified Properties
-              </button>
-              <button 
-                onClick={() => { setActiveCategory('community'); setVisibleCount(6); }}
-                style={{
-                  padding: '8px 16px', borderRadius: '30px', fontWeight: 'bold', cursor: 'pointer',
-                  border: activeCategory === 'community' ? 'none' : '1px solid var(--line)',
-                  background: activeCategory === 'community' ? '#eab308' : 'transparent',
-                  color: activeCategory === 'community' ? '#1f2937' : 'var(--text-soft)'
-                }}
-              >
-                Unverified Properties
-              </button>
-            </div>
-            <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '1.35rem' }}>
-              {activeCategory === 'approved' ? 'Verified Official Inventory' : 'Community Postings'}
-            </h3>
-            <p className="results-meta">
-              {activeCategory === 'approved' ? 'These properties have been legally vetted and approved by Real Properties.' : 'These properties were submitted by users and agents and are pending official verification.'}
-            </p>
-          </div>
-          <div className="results-count" style={{ alignSelf: 'flex-end' }}>
-            <Tag size={14} />
-            {filteredProperties.length} results
-          </div>
-        </div>
+        <h2 style={{ marginTop: '20px', marginBottom: '20px', fontSize: '24px', fontWeight: 'bold', color: '#002f34' }}>
+          {selectedType === 'All' ? 'All Properties' : selectedType}
+        </h2>
 
         {visibleProperties.length > 0 ? (
-          <div className="property-grid">
+          <div className="property-grid olx-properties-grid">
             <AnimatePresence>
               {visibleProperties.map((property) => (
                 <PropertyCard key={property._id} property={property} />

@@ -123,7 +123,8 @@ const PropertyDetailsPage = () => {
         } catch (e) {}
 
         const allProperties = [...approved, ...community];
-        const found = allProperties.find(p => p._id === id);
+        const actualId = id ? id.split('-').pop() : '';
+        const found = allProperties.find(p => p._id === actualId);
         
         if (found) setProperty(found);
         else setError('Property not found');

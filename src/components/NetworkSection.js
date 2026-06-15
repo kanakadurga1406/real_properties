@@ -10,7 +10,7 @@ const NetworkSection = () => {
   const [data, setData] = useState({
     coreProjects: [],
     valueProjects: [],
-    coreClients: []
+    wealthProjects: []
   });
   const [loading, setLoading] = useState(true);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -20,20 +20,20 @@ const NetworkSection = () => {
     const fetchNetworkData = async () => {
       setLoading(true);
       try {
-        const [coreRes, valueRes, clientsRes] = await Promise.all([
+        const [coreRes, valueRes, wealthRes] = await Promise.all([
           fetch(`${API_URL}/coreproject/getallcoreprojects`),
           fetch(`${API_URL}/coreproject/getallValueprojects`),
-          fetch(`${API_URL}/coreclient/getallcoreclients`)
+          fetch(`${API_URL}/coreproject/getallWealthprojects`)
         ]);
 
         const core = coreRes.ok ? await coreRes.json() : [];
         const val = valueRes.ok ? await valueRes.json() : [];
-        const cli = clientsRes.ok ? await clientsRes.json() : [];
+        const wealth = wealthRes.ok ? await wealthRes.json() : [];
 
         setData({
           coreProjects: Array.isArray(core) ? core : [],
           valueProjects: Array.isArray(val) ? val : [],
-          coreClients: Array.isArray(cli) ? cli : []
+          wealthProjects: Array.isArray(wealth) ? wealth : []
         });
       } catch (err) {
         console.error('Failed to fetch network data:', err);
@@ -67,29 +67,22 @@ const NetworkSection = () => {
   const tabs = [
     { id: 'coreProjects', label: 'Core Projects', icon: <Star size={16} />, items: data.coreProjects },
     { id: 'valueProjects', label: 'Value Projects', icon: <Briefcase size={16} />, items: data.valueProjects },
-    { id: 'coreClients', label: 'Core Clients', icon: <Users size={16} />, items: data.coreClients },
+    { id: 'wealthProjects', label: 'Wealth Projects', icon: <Building2 size={16} />, items: data.wealthProjects },
   ];
 
   const currentItems = tabs.find(t => t.id === activeTab)?.items || [];
 
   return (
-    <section id="network" className="network-section" style={{ padding: '6rem 0', background: 'var(--surface-strong)' }}>
+    <section id="network" className="network-section" style={{ padding: '1.5rem 0', background: 'var(--surface-strong)' }}>
       <div className="section-container">
-        <div className="v2-header-stack" style={{ textAlign: 'center', alignItems: 'center' }}>
+        <div className="v2-header-stack" style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
           <span className="section-eyebrow">
             <Building2 size={14} />
             Projects
           </span>
-          <h2 className="v2-title-xl">
-            Explore our current projects.
-          </h2>
-          <p className="v2-p-lg section-subcopy" style={{ maxWidth: '800px', margin: '1rem auto' }}>
-            Discover our core development projects, high-value investment opportunities, and the prestigious clients we work with.
-          </p>
         </div>
-
         {/* Tab Navigation */}
-        <div className="network-tabs" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '2.5rem' }}>
+        <div className="network-tabs" style={{ display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.2rem' }}>
           {tabs.map(tab => (
             <button
               key={tab.id}
@@ -196,7 +189,7 @@ const NetworkSection = () => {
                               <button 
                                 className="btn-primary" 
                                 aria-label={`Open True Sale platform for ${item.projectName || item.city}`}
-                                style={{ width: '100%', justifyContent: 'center', padding: '0.75rem', fontSize: '0.9rem', width: '100%', background: '#4F46E5', color: '#ffffff', border: 'none', boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)' }}
+                                style={{ width: '100%', justifyContent: 'center', padding: '0.75rem', fontSize: '0.9rem', background: '#4F46E5', color: '#ffffff', border: 'none', boxShadow: '0 4px 12px rgba(79, 70, 229, 0.25)' }}
                                 onClick={(e) => { e.stopPropagation(); handleOpenLink(item.trueUrl); }}
                               >
                                 True Sale Platform

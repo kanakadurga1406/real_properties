@@ -1,0 +1,316 @@
+.olx-header-wrapper {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  width: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 1000;
+  background-color: #f7f8f9;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+}
+
+.olx-header-top {
+  background-color: #f7f8f9;
+  padding: 8px 0;
+}
+
+.olx-header-top-content {
+  width: 90%;
+  max-width: none;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 16px;
+}
+
+.olx-logo {
+  cursor: pointer;
+  margin-right: 16px;
+  flex-shrink: 0;
+}
+
+.olx-location-search {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border: 2px solid #002f34;
+  border-radius: 4px;
+  padding: 0 8px;
+  height: 48px;
+  width: 260px;
+  flex-shrink: 0;
+}
+
+.olx-location-input {
+  border: none;
+  outline: none;
+  height: 100%;
+  width: 100%;
+  padding: 0 8px;
+  font-size: 16px;
+  color: #002f34;
+}
+
+.olx-main-search {
+  display: flex;
+  align-items: center;
+  background-color: #fff;
+  border: 2px solid #002f34;
+  border-radius: 4px;
+  height: 48px;
+  flex: 1;
+}
+
+.olx-search-suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  max-height: 350px;
+  overflow-y: auto;
+  z-index: 1001;
+  border: 1px solid #ebeeef;
+}
+
+.olx-suggestion-item {
+  display: flex;
+  align-items: center;
+  padding: 12px 16px;
+  gap: 12px;
+  cursor: pointer;
+  border-bottom: 1px solid #f2f4f5;
+  transition: background-color 0.2s ease;
+}
+
+.olx-suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.olx-suggestion-item:hover {
+  background-color: #f7f8f9;
+}
+
+.olx-suggestion-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.olx-sug-title {
+  color: #002f34;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.olx-sug-subtitle {
+  color: #727e80;
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.olx-main-input {
+  border: none;
+  outline: none;
+  height: 100%;
+  width: 100%;
+  padding: 0 12px;
+  font-size: 16px;
+  color: #002f34;
+}
+
+.olx-search-btn {
+  background-color: #002f34;
+  border: none;
+  height: 100%;
+  padding: 0 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.olx-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.olx-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #002f34;
+  font-weight: 700;
+  font-size: 14px;
+  gap: 4px;
+}
+
+.olx-action-btn:hover {
+  text-decoration: underline;
+}
+
+.olx-sell-btn {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+  margin-left: 8px;
+}
+
+.olx-sell-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: conic-gradient(from 180deg at 50% 50%, var(--primary) -13.04deg, var(--accent) 60deg, var(--primary-strong) 130.6deg, var(--primary) 346.96deg, var(--accent) 420deg);
+  border-radius: 24px;
+  z-index: 1;
+}
+
+.olx-sell-btn-inner {
+  position: relative;
+  z-index: 2;
+  margin: 4px;
+  background-color: #fff;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  padding: 4px 16px 4px 12px;
+  gap: 4px;
+  font-weight: 700;
+  font-size: 14px;
+  color: #002f34;
+  height: 36px;
+}
+
+/* Bottom Bar */
+.olx-header-bottom {
+  background-color: #fff;
+  border-bottom: 1px solid #ebeeef;
+}
+
+.olx-header-bottom-content {
+  width: 90%;
+  max-width: none;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  gap: 24px;
+}
+
+/* Removed olx-all-categories */
+
+.olx-category-links {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  white-space: nowrap;
+  padding: 4px 0;
+  /* Hide scrollbar */
+  scrollbar-width: none;
+}
+
+.olx-category-links::-webkit-scrollbar {
+  display: none;
+}
+
+.olx-category-card {
+  color: #002f34;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  background-color: #f2f4f5;
+  border: 1px solid #d8dfe0;
+  border-radius: 20px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  font-family: inherit;
+}
+
+.olx-category-card:hover {
+  background-color: #ebeeef;
+  border-color: #002f34;
+}
+
+.olx-category-card.active {
+  background-color: #002f34;
+  color: #ffffff;
+  border-color: #002f34;
+}
+
+.olx-date {
+  color: #707e80;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+/* Adjust landing page padding since header is now fixed and different size */
+body {
+  padding-top: 120px;
+}
+
+/* Mobile Responsive Adjustments */
+@media (max-width: 768px) {
+  .olx-header-top-content {
+    gap: 8px;
+    padding: 0 10px;
+    position: relative; /* Contain absolute children */
+  }
+  
+  .olx-logo span {
+    display: none; /* Hide 'RealProperties' text on small screens, keep icon */
+  }
+  
+  .olx-main-search {
+    margin: 0 5px;
+    transition: all 0.3s ease;
+  }
+  
+  .olx-actions {
+    gap: 8px;
+  }
+  
+  .olx-action-btn span {
+    display: none; /* Hide 'Login'/'Logout' text */
+  }
+  
+  .olx-sell-btn {
+    padding: 2px;
+  }
+  
+  .olx-sell-btn-inner {
+    padding: 0 12px;
+  }
+  
+  .olx-sell-btn-inner span {
+    font-size: 12px;
+  }
+  
+  /* Expand search bar on focus for mobile */
+  .olx-main-search:focus-within {
+    position: absolute !important;
+    left: 10px;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 100;
+    margin: 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  }
+}

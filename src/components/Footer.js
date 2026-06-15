@@ -28,9 +28,6 @@ const Footer = () => {
             <div className="footer-column-title">Coverage</div>
             <ul className="footer-list">
               <li>Andhra Pradesh</li>
-              <li>Telangana</li>
-              <li>Bengaluru region</li>
-              <li>Growth corridors</li>
             </ul>
           </div>
 

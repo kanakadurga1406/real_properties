@@ -1,26 +1,65 @@
-import React, { useEffect, useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Building2, LogOut, Menu, Moon, Plus, Sun, User, X } from 'lucide-react';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { Building2, Plus, User, Search } from 'lucide-react';
+import './NavbarOLX.css'; // We will create this file for the specific styles
+import CONFIG from '../config';
+import { parseSearchQuery, matchProperty } from '../utils/searchUtils';
 
-const navLinks = [
-  { name: 'Home', id: 'home' },
-  { name: 'Listings', id: 'all-listings-section' },
-  { name: 'Projects', id: 'network' },
-  { name: 'Why Us', id: 'features' },
-  { name: 'Contact', id: 'contact' }
+const initialNavLinks = [
+  { name: 'FLAT (APARTMENT)', id: 'flat' },
+  { name: 'HOUSE (INDIVIDUAL)', id: 'house' },
+  { name: 'LAND (OPENSITE)', id: 'land' },
+  { name: 'COMMERCIAL PROPERTY', id: 'commercial-property' },
+  { name: 'COMMERCIAL LAND', id: 'commercial-land' },
+  { name: 'AGRICULTURE LAND', id: 'agriculture-land' },
+  { name: 'PLOT (LAYOUT)', id: 'plot' },
+  { name: 'VILLA', id: 'villa' }
 ];
 
 const Navbar = ({ onExplore, hidePostBtn = false }) => {
-  const [scrolled, setScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('home');
-  const [theme, setTheme] = useState('light');
   const [user, setUser] = useState(null);
+  const [navLinks, setNavLinks] = useState(initialNavLinks);
+  const [activeType, setActiveType] = useState(null);
+  const [allProperties, setAllProperties] = useState([]);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchContainerRef = useRef(null);
+  const categoryScrollRef = useRef(null);
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('app-theme') || 'light';
-    setTheme(savedTheme);
-    document.documentElement.setAttribute('data-theme', savedTheme);
+    const q = searchParams.get('search');
+    if (q) setSearchQuery(q);
+    const cat = searchParams.get('category');
+    if (cat) setActiveType(cat);
+    else setActiveType('All Properties');
+  }, [searchParams]);
+
+  // Horizontal scroll for categories using mouse wheel
+  useEffect(() => {
+    const el = categoryScrollRef.current;
+    if (!el) return;
+
+    const handleWheel = (e) => {
+      if (e.deltaY !== 0) {
+        const canScrollLeft = el.scrollLeft > 0;
+        const canScrollRight = el.scrollLeft < el.scrollWidth - el.clientWidth - 1; // -1 for subpixel rounding
+        
+        // If we're scrolling down and can scroll right, or scrolling up and can scroll left
+        if ((e.deltaY > 0 && canScrollRight) || (e.deltaY < 0 && canScrollLeft)) {
+          e.preventDefault();
+          el.scrollLeft += e.deltaY;
+        }
+      }
+    };
+
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+  }, []);
+
+  useEffect(() => {
 
     const storedUser = localStorage.getItem('realprop_user');
     if (storedUser) {
@@ -33,52 +72,92 @@ const Navbar = ({ onExplore, hidePostBtn = false }) => {
     };
 
     window.addEventListener('authChange', handleAuthChange);
-    return () => window.removeEventListener('authChange', handleAuthChange);
-  }, []);
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 18);
-      
-      // If we're at the very top, highlight Home
-      if (window.scrollY < 100) {
-        setActiveTab('home');
-        return;
+    // Fetch dynamic property types from backend
+    const fetchPropertyTypes = async () => {
+      try {
+        const response = await fetch(`${CONFIG.API_BASE_URL}/properties/getApproveProperty`);
+        if (response.ok) {
+          const data = await response.json();
+          const properties = Array.isArray(data) ? data : (data.properties || []);
+          setAllProperties(properties);
+          const uniqueTypes = [...new Set(properties.map(p => p.propertyType).filter(Boolean))];
+          
+          if (uniqueTypes.length > 0) {
+            setNavLinks([
+              { name: 'All Properties', id: 'all' },
+              ...uniqueTypes.map(type => ({ 
+                name: type, 
+                id: type.toLowerCase().replace(/[^a-z0-9]/g, '-') 
+              }))
+            ]);
+          }
+        }
+      } catch (err) {
+        console.warn('Failed to fetch property types for navbar', err);
       }
+    };
+    
+    fetchPropertyTypes();
 
-      // Check sections from bottom to top
-      const sections = ['contact', 'features', 'network', 'all-listings-section'];
-      const current = sections.find((id) => {
-        const element = document.getElementById(id);
-        return element && element.getBoundingClientRect().top <= 250;
-      });
-      
-      if (current) {
-        setActiveTab(current);
+    const handleClickOutside = (event) => {
+      if (searchContainerRef.current && !searchContainerRef.current.contains(event.target)) {
+        setShowSuggestions(false);
       }
     };
 
-    handleScroll();
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      window.removeEventListener('authChange', handleAuthChange);
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
   }, []);
 
-  const toggleTheme = () => {
-    const nextTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(nextTheme);
-    localStorage.setItem('app-theme', nextTheme);
-    document.documentElement.setAttribute('data-theme', nextTheme);
+  const suggestions = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    
+    const parsedQuery = parseSearchQuery(searchQuery);
+    const matches = allProperties.filter((property) => matchProperty(property, parsedQuery));
+
+    // Extract unique labels to avoid huge lists of duplicate names
+    const uniqueMatches = [];
+    const seen = new Set();
+    matches.forEach(p => {
+      const dd = p.dynamicData || {};
+      const agri = dd.agricultureDetails || {};
+      const area = dd.area || dd.totalArea || agri.extent || '';
+      
+      // Combine key fields to create a unique fingerprint for the suggestion
+      const fingerprint = `${p.location || ''}-${p.propertyType || ''}-${area}-${p.price || ''}`;
+      
+      if (!seen.has(fingerprint)) {
+        seen.add(fingerprint);
+        uniqueMatches.push({
+          ...p,
+          sugTitle: p.location || p.district || p.propertyType,
+          sugSub: [p.propertyType, area, p.price ? `₹${p.price}` : ''].filter(Boolean).join(' • ')
+        });
+      }
+    });
+
+    return uniqueMatches.slice(0, 5); // Return top 5 suggestions
+  }, [searchQuery, allProperties]);
+
+  const executeSearch = (term) => {
+    setSearchQuery(term);
+    setShowSuggestions(false);
+    
+    const params = new URLSearchParams(searchParams);
+    if (term) params.set('search', term);
+    else params.delete('search');
+    
+    navigate(`/?${params.toString()}`);
+    window.dispatchEvent(new CustomEvent('globalSearch', { detail: term }));
   };
 
-  const handleNavClick = (id) => {
-    if (id === 'home') {
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
-    }
-    setMobileMenuOpen(false);
-    if (id === 'all-listings-section' && onExplore) {
-      onExplore();
+  const handleSearchSubmit = (e) => {
+    if (e.key === 'Enter') {
+      executeSearch(searchQuery);
     }
   };
 
@@ -90,151 +169,125 @@ const Navbar = ({ onExplore, hidePostBtn = false }) => {
     window.dispatchEvent(new CustomEvent('switchView', { detail: 'home' }));
   };
 
-  // Fires openPostProperty event — LandingPage handles the auth + subscription check
   const openPostFlow = () => {
     setMobileMenuOpen(false);
     window.dispatchEvent(new CustomEvent('openPostProperty'));
   };
 
   return (
-    <>
-      <motion.nav
-        initial={{ y: -24, x: '-50%', opacity: 0 }}
-        animate={{ y: 0, x: '-50%', opacity: 1 }}
-        transition={{ duration: 0.45, ease: 'easeOut' }}
-        className={`navbar ${scrolled ? 'scrolled' : ''}`}
-      >
-        <div className="navbar-container">
-          <div className="navbar-logo" onClick={() => handleNavClick('home')}>
-            <div className="logo-icon-wrap">
-              <Building2 size={22} />
+    <div className="olx-header-wrapper">
+      <div className="olx-header-top">
+        <div className="olx-header-top-content">
+          <div className="olx-logo" onClick={() => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            setMobileMenuOpen(false);
+          }} style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+            <div style={{
+              width: '40px', height: '40px', borderRadius: '12px',
+              display: 'grid', placeItems: 'center',
+              background: 'linear-gradient(135deg, #17332c 0%, #23453c 100%)', color: '#fff'
+            }}>
+              <Building2 size={20} />
             </div>
-            <span className="logo-text">RealProperties</span>
+            <span style={{color: '#002f34', fontWeight: 800, fontSize: '1.4rem', letterSpacing: '-0.5px'}}>RealProperties</span>
           </div>
-
-          <div className="navbar-links desktop-only">
-            {navLinks.map((link) => (
-              <motion.button
-                key={link.id}
-                onClick={() => handleNavClick(link.id)}
-                className={`nav-link ${activeTab === link.id ? 'active' : ''}`}
-              >
-                {activeTab === link.id && (
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.85 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.2 }}
-                    className="nav-link-indicator" 
-                  />
-                )}
-                <span style={{ position: 'relative', zIndex: 1 }}>{link.name}</span>
-              </motion.button>
-            ))}
-          </div>
-
-          <div className="navbar-cta">
-            <button className="theme-toggle desktop-only" onClick={toggleTheme} title="Toggle theme">
-              {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
+          
+          <div className="olx-main-search" ref={searchContainerRef} style={{ position: 'relative' }}>
+            <input 
+              type="text" 
+              placeholder='Search "Properties"' 
+              className="olx-main-input"
+              value={searchQuery}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSearchQuery(val);
+                if (val.trim() === '') {
+                  executeSearch('');
+                } else {
+                  setShowSuggestions(true);
+                }
+              }}
+              onFocus={() => { if(searchQuery.trim()) setShowSuggestions(true); }}
+              onKeyDown={handleSearchSubmit}
+            />
+            <button className="olx-search-btn" onClick={() => executeSearch(searchQuery)}>
+              <Search size={24} color="#ffffff" strokeWidth={2.5} />
             </button>
 
-            {user ? (
-              <>
-                {!hidePostBtn && (
-                  <button onClick={openPostFlow} className="btn-primary desktop-only" style={{ paddingInline: '1.1rem' }}>
-                    <Plus size={16} />
-                    Post Property
-                  </button>
-                )}
-                <div
-                  className="account-chip desktop-only"
-                  onClick={() => window.dispatchEvent(new CustomEvent('switchView', { detail: 'my_properties' }))}
-                >
-                  <div className="account-chip-avatar">
-                    <User size={17} />
+            {/* Realtime Search Suggestions Dropdown */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div className="olx-search-suggestions">
+                {suggestions.map((prop, idx) => (
+                  <div 
+                    key={idx} 
+                    className="olx-suggestion-item"
+                    onClick={() => executeSearch(searchQuery)}
+                  >
+                    <Search size={16} color="#727e80" />
+                    <div className="olx-suggestion-text">
+                      <span className="olx-sug-title">{prop.sugTitle}</span>
+                      {prop.sugSub && <span className="olx-sug-subtitle">{prop.sugSub}</span>}
+                    </div>
                   </div>
-                  <span className="account-chip-name">{user.name?.split(' ')[0] || 'Account'}</span>
-                </div>
-                <button className="theme-toggle desktop-only" onClick={handleLogout} title="Logout">
-                  <LogOut size={16} />
-                </button>
-              </>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="olx-actions">
+            {user ? (
+              <div className="olx-action-btn" onClick={handleLogout} style={{cursor: 'pointer'}}>
+                <User size={22} color="#002f34" strokeWidth={2.5} />
+                <span>Logout</span>
+              </div>
             ) : (
-              <button
-                onClick={() => window.dispatchEvent(new CustomEvent('openAuth'))}
-                className="btn-primary desktop-only"
-              >
-                Sign In
+              <button className="olx-action-btn" onClick={() => window.dispatchEvent(new CustomEvent('openAuth'))}>
+                <User size={22} color="#002f34" strokeWidth={2.5} />
+                <span>Login</span>
               </button>
             )}
 
-            <button className="mobile-toggle hide-desktop" onClick={() => setMobileMenuOpen((prev) => !prev)}>
-              {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
-            </button>
+            {!hidePostBtn && (
+              <button className="olx-sell-btn" onClick={openPostFlow}>
+                <div className="olx-sell-btn-inner">
+                  <Plus size={18} strokeWidth={3} />
+                  <span>SELL</span>
+                </div>
+              </button>
+            )}
           </div>
         </div>
-      </motion.nav>
+      </div>
 
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="mobile-menu-panel v2-surface-raised"
-          >
-            <div className="mobile-menu-links">
-              {navLinks.map((link) => (
-                <button key={link.id} className="nav-link" onClick={() => handleNavClick(link.id)}>
-                  {link.name}
-                </button>
-              ))}
-            </div>
-
-            <div style={{ display: 'grid', gap: '0.7rem', marginTop: '1rem' }}>
-              {user ? (
-                <>
-                  {!hidePostBtn && (
-                    <button className="btn-primary" onClick={openPostFlow}>
-                      <Plus size={16} />
-                      Post Property
-                    </button>
-                  )}
-                  <button
-                    className="btn-outline"
-                    onClick={() => {
-                      setMobileMenuOpen(false);
-                      window.dispatchEvent(new CustomEvent('switchView', { detail: 'my_properties' }));
-                    }}
-                  >
-                    <User size={16} />
-                    My Properties
-                  </button>
-                  <button className="btn-outline" onClick={handleLogout}>
-                    <LogOut size={16} />
-                    Logout
-                  </button>
-                </>
-              ) : (
-                <button
-                  className="btn-primary"
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    window.dispatchEvent(new CustomEvent('openAuth'));
-                  }}
-                >
-                  Sign In
-                </button>
-              )}
-
-              <button className="btn-outline" onClick={toggleTheme}>
-                {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-                {theme === 'dark' ? 'Light Theme' : 'Dark Theme'}
+      <div className="olx-header-bottom">
+        <div className="olx-header-bottom-content">
+          <div className="olx-category-links" ref={categoryScrollRef}>
+            {navLinks.map(link => (
+              <button 
+                key={link.id} 
+                onClick={() => {
+                  setActiveType(link.name);
+                  
+                  const params = new URLSearchParams(searchParams);
+                  if (link.name !== 'All Properties') params.set('category', link.name);
+                  else params.delete('category');
+                  
+                  navigate(`/?${params.toString()}`);
+                  window.dispatchEvent(new CustomEvent('propertyTypeSelected', { detail: link.name }));
+                }} 
+                className={`olx-category-card ${activeType === link.name ? 'active' : ''}`}
+              >
+                {link.name}
               </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </>
+            ))}
+          </div>
+
+          <div className="olx-date">
+            {new Date().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ', ' + new Date().getFullYear()}
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 
