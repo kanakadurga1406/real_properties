@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Building2, MapPin, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Building2, MapPin, CheckCircle2, AlertCircle, Maximize, Minimize } from 'lucide-react';
 import CONFIG from './config';
 import './SlideshowPage.css';
 
@@ -13,6 +13,8 @@ const SlideshowPage = () => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const slideshowRef = React.useRef(null);
   
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
@@ -133,6 +135,26 @@ const SlideshowPage = () => {
     return new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(num);
   };
 
+  const toggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      if (slideshowRef.current?.requestFullscreen) {
+        slideshowRef.current.requestFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  };
+
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => document.removeEventListener('fullscreenchange', handleFullscreenChange);
+  }, []);
+
   if (loading) {
     return (
       <div className="slideshow-loading">
@@ -167,7 +189,29 @@ const SlideshowPage = () => {
   const subtitle = [bhk, currentProperty.propertyType, area].filter(Boolean).join(' • ');
 
   return (
-    <div className="slideshow-page">
+    <div className="slideshow-page" ref={slideshowRef}>
+      <button 
+        onClick={toggleFullscreen}
+        style={{
+          position: 'absolute',
+          top: '30px',
+          right: '40px',
+          zIndex: 100,
+          background: 'rgba(0,0,0,0.5)',
+          border: '1px solid rgba(255,255,255,0.2)',
+          color: '#fff',
+          width: '48px',
+          height: '48px',
+          borderRadius: '12px',
+          display: 'grid',
+          placeItems: 'center',
+          cursor: 'pointer',
+          backdropFilter: 'blur(8px)'
+        }}
+      >
+        {isFullscreen ? <Minimize size={24} /> : <Maximize size={24} />}
+      </button>
+      
       <div className="slideshow-container">
         <AnimatePresence mode="wait">
           <motion.div
