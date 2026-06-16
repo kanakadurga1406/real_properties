@@ -27,7 +27,41 @@ const Navbar = ({ onExplore, hidePostBtn = false }) => {
   const categoryScrollRef = useRef(null);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [, setMobileMenuOpen] = useState(false);
+
+  // Hidden Feature States
+  const logoClicksRef = useRef(0);
+  const [showConstituencyModal, setShowConstituencyModal] = useState(false);
+  const [allConstituencies, setAllConstituencies] = useState([]);
+  const [constituencySearch, setConstituencySearch] = useState('');
+
+  const filteredConstituencies = useMemo(() => {
+    if (!constituencySearch.trim()) return allConstituencies;
+    return allConstituencies.filter(c => c.toLowerCase().includes(constituencySearch.toLowerCase()));
+  }, [allConstituencies, constituencySearch]);
+
+  useEffect(() => {
+    fetch(`${CONFIG.API_BASE_URL}/discons/constituencys`)
+      .then(res => res.json())
+      .then(data => {
+        const unique = data.map(c => c.name).filter(Boolean).sort();
+        setAllConstituencies(unique);
+      })
+      .catch(err => console.warn('Constituency fetch error:', err));
+  }, []);
+
+  const handleLogoClick = () => {
+    logoClicksRef.current += 1;
+    if (logoClicksRef.current >= 5) {
+      setShowConstituencyModal(true);
+      logoClicksRef.current = 0;
+    }
+  };
+
+  const handleSelectConstituency = (c) => {
+    setShowConstituencyModal(false);
+    navigate(`/slideshow?constituency=${encodeURIComponent(c)}`);
+  };
 
   useEffect(() => {
     const q = searchParams.get('search');
@@ -181,7 +215,8 @@ const Navbar = ({ onExplore, hidePostBtn = false }) => {
           <div className="olx-logo" onClick={() => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
             setMobileMenuOpen(false);
-          }} style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+            handleLogoClick();
+          }} style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', userSelect: 'none'}}>
             <div style={{
               width: '40px', height: '40px', borderRadius: '12px',
               display: 'grid', placeItems: 'center',
@@ -191,6 +226,84 @@ const Navbar = ({ onExplore, hidePostBtn = false }) => {
             </div>
             <span style={{color: '#002f34', fontWeight: 800, fontSize: '1.4rem', letterSpacing: '-0.5px'}}>RealProperties</span>
           </div>
+
+          {showConstituencyModal && (
+            <div style={{
+              position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+              background: 'rgba(0,0,0,0.8)', zIndex: 10000, display: 'flex',
+              alignItems: 'center', justifyContent: 'center'
+            }}>
+              <div style={{
+                background: '#fff', padding: '24px', borderRadius: '12px',
+                width: '90%', maxWidth: '400px', maxHeight: '80vh',
+                boxShadow: '0 10px 25px rgba(0,0,0,0.5)',
+                display: 'flex', flexDirection: 'column'
+              }}>
+                <h2 style={{color: '#002f34', marginBottom: '16px', marginTop: 0}}>Select Constituency to View Slideshow</h2>
+                
+                <div style={{ position: 'relative', marginBottom: '16px', flexShrink: 0 }}>
+                  <Search size={18} color="#727e80" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)' }} />
+                  <input
+                    type="text"
+                    placeholder="Search constituency..."
+                    value={constituencySearch}
+                    onChange={(e) => setConstituencySearch(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '12px 12px 12px 40px',
+                      borderRadius: '8px',
+                      border: '1px solid #ccc',
+                      fontSize: '14px',
+                      boxSizing: 'border-box'
+                    }}
+                  />
+                </div>
+
+                <div style={{display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', flex: 1, paddingRight: '4px'}}>
+                  {(!constituencySearch.trim() || 'all constituencies'.includes(constituencySearch.toLowerCase())) && (
+                    <button 
+                      onClick={() => handleSelectConstituency('All')}
+                      style={{
+                        padding: '12px', textAlign: 'left', border: 'none', borderRadius: '8px',
+                        background: '#002f34',
+                        color: '#fff',
+                        cursor: 'pointer', fontWeight: 'bold', flexShrink: 0
+                      }}
+                    >
+                      All Constituencies
+                    </button>
+                  )}
+                  {filteredConstituencies.map(c => (
+                    <button 
+                      key={c}
+                      onClick={() => handleSelectConstituency(c)}
+                      style={{
+                        padding: '12px', textAlign: 'left', border: 'none', borderRadius: '8px',
+                        background: '#f0f0f0',
+                        color: '#002f34',
+                        cursor: 'pointer'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = '#e2e8f0'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = '#f0f0f0'}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
+                <button 
+                  onClick={() => setShowConstituencyModal(false)}
+                  style={{
+                    marginTop: '16px', width: '100%', padding: '12px',
+                    background: 'transparent', border: '1px solid #ccc',
+                    borderRadius: '8px', cursor: 'pointer', color: '#333',
+                    flexShrink: 0
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
           
           <div className="olx-main-search" ref={searchContainerRef} style={{ position: 'relative' }}>
             <input 

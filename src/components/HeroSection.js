@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, MapPin, Building2, IndianRupee, Maximize, Home, ShieldCheck, Users, ChevronRight } from 'lucide-react';
+import { Search, MapPin, Building2, IndianRupee, Home, Users, ChevronRight } from 'lucide-react';
 import './HeroSection.css';
 import CONFIG from '../config';
 
@@ -11,7 +11,7 @@ const HeroSection = ({ onExplore, onSearch }) => {
   const [location, setLocation] = useState('');
   const [propertyType, setPropertyType] = useState('');
   const [budget, setBudget] = useState('');
-  const [area, setArea] = useState('');
+
 
   const [stats, setStats] = useState({
     properties: '10,000+',
@@ -55,7 +55,7 @@ const HeroSection = ({ onExplore, onSearch }) => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    const queryParts = [location, propertyType, budget, area].filter(Boolean);
+    const queryParts = [location, propertyType, budget].filter(Boolean);
     const query = queryParts.join(' ');
     if (query) {
       onSearch(query);
@@ -140,20 +140,7 @@ const HeroSection = ({ onExplore, onSearch }) => {
               </div>
             </div>
 
-            <div className="field-divider"></div>
 
-            <div className="search-field">
-              <div className="field-icon"><Maximize size={20} /></div>
-              <div className="field-inputs">
-                <label>Area</label>
-                <select value={area} onChange={(e) => setArea(e.target.value)}>
-                  <option value="">Select Area</option>
-                  <option value="Under 1000 sqft">Under 1000 sqft</option>
-                  <option value="1000 - 2000 sqft">1000 - 2000 sqft</option>
-                  <option value="Above 2000 sqft">Above 2000 sqft</option>
-                </select>
-              </div>
-            </div>
 
             <button type="submit" className="search-submit-btn">
               <Search size={18} />

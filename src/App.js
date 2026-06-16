@@ -3,7 +3,8 @@ import { Routes, Route, useNavigate } from 'react-router-dom';
 import LandingPage from './LandingPage';
 import MyPropertiesPage from './MyPropertiesPage';
 import PropertyDetailsPage from './PropertyDetailsPage';
-import './App.css'; 
+import SlideshowPage from './SlideshowPage';
+import './App.css';
 
 function AppContent() {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ function AppContent() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/my-properties" element={<MyPropertiesPage />} />
         <Route path="/property/:id" element={<PropertyDetailsPage />} />
+        <Route path="/slideshow" element={<SlideshowPage />} />
       </Routes>
     </div>
   );

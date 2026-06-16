@@ -261,7 +261,7 @@
 }
 
 /* Adjust landing page padding since header is now fixed and different size */
-body {
+.landing-container {
   padding-top: 120px;
 }
 
