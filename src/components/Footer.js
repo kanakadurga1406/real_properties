@@ -1,5 +1,5 @@
 import React from 'react';
-import { AtSign, Building2, Globe, Mail, MapPin, Phone } from 'lucide-react';
+import { Mail, MapPin, Phone } from 'lucide-react';
 
 const Footer = () => {
   return (
@@ -8,9 +8,7 @@ const Footer = () => {
         <div className="footer-shell">
           <div>
             <div className="navbar-logo">
-              <div className="logo-icon-wrap">
-                <Building2 size={22} />
-              </div>
+              <img src="/icon-192.png" alt="Real Properties Logo" style={{ width: '36px', height: '36px', borderRadius: '8px', objectFit: 'contain' }} />
               <span className="logo-text">RealProperties</span>
             </div>
 
@@ -53,7 +51,7 @@ const Footer = () => {
               <li>
                 <a href="mailto:wealthassociates.com@gmail.com">
                   <Mail size={15} style={{ marginRight: '0.45rem', verticalAlign: 'text-bottom' }} />
-                  wealthassociates.com@gmail.com
+                  wealthassociates.com
                 </a>
               </li>
               <li>

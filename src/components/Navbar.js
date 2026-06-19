@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { Building2, Plus, User, Search } from 'lucide-react';
+import { Plus, User, Search } from 'lucide-react';
 import './NavbarOLX.css'; // We will create this file for the specific styles
 import CONFIG from '../config';
 import { parseSearchQuery, matchProperty } from '../utils/searchUtils';
@@ -217,13 +217,7 @@ const Navbar = ({ onExplore, hidePostBtn = false }) => {
             setMobileMenuOpen(false);
             handleLogoClick();
           }} style={{display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', userSelect: 'none'}}>
-            <div style={{
-              width: '40px', height: '40px', borderRadius: '12px',
-              display: 'grid', placeItems: 'center',
-              background: 'linear-gradient(135deg, #17332c 0%, #23453c 100%)', color: '#fff'
-            }}>
-              <Building2 size={20} />
-            </div>
+            <img src="/icon-192.png" alt="Real Properties Logo" style={{ width: '40px', height: '40px', borderRadius: '12px', objectFit: 'contain' }} />
             <span style={{color: '#002f34', fontWeight: 800, fontSize: '1.4rem', letterSpacing: '-0.5px'}}>RealProperties</span>
           </div>
 
